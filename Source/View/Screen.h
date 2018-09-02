@@ -144,7 +144,7 @@ class ControlsPanel : public Component
 			btnRunProcess.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 			btnRunProcess.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 
-			lblLUFSTarget.setText("TARGET LUFS", dontSendNotification);
+			lblLUFSTarget.setText("TARGET LOUDNESS", dontSendNotification);
 			lblLUFSTarget.setColour(Label::textColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));
 			lblLUFSTarget.setColour(Label::backgroundColourId, ColourFactory::getColour(theme::LABEL_BK_COLOUR));
 			lblLUFSTarget.setJustificationType(Justification::centred);

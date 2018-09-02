@@ -10,6 +10,11 @@
 
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
+class ListBoxModelListener
+{
+public:
+	virtual void ModelRefresh(String tag) {};
+};
 
 class InputFileListBoxModel : public ListBoxModel
 {
@@ -17,6 +22,11 @@ class InputFileListBoxModel : public ListBoxModel
 		InputFileListBoxModel()
 		{
 			data.clear();
+		}
+		void setListener(ListBoxModelListener* l, String t)
+		{
+			listener = l; 
+			tag = t;
 		}
 		int getNumRows() override
 		{
@@ -33,5 +43,13 @@ class InputFileListBoxModel : public ListBoxModel
 		{
 		}
 
+		void listBoxItemDoubleClicked(int row, const MouseEvent &) override
+		{
+			data.remove(row);
+			listener->ModelRefresh(tag);
+		}
+		
 		Array<File> data;
+		ListBoxModelListener* listener;
+		String tag;
 };

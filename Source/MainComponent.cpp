@@ -85,7 +85,19 @@ void MainComponent::initialiseUserInterface()
 	leftPanel.btnAddFiles.onClick = [this] { addFilesButtonClicked(); };
 	leftPanel.btnDestFolder.onClick = [this] { destinationFolderButtonClicked(); };
 	mainPanel.btnRunProcess.onClick = [this] { runProcessButtonClicked(); };
+
+	inputListModel.setListener(this, tagInputList);
+	leftPanel.listInputFiles.setModel(&inputListModel);
 }
+
+void MainComponent::ModelRefresh(String tag)
+{
+	if (tag == tagInputList)
+	{
+		leftPanel.listInputFiles.updateContent();
+	}
+};
+
 void MainComponent::addFilesButtonClicked()
 {
 	FileChooser chooser("Select files to process...", File::nonexistent, "*.wav");
@@ -98,7 +110,7 @@ void MainComponent::addFilesButtonClicked()
 	{
 		inputListModel.data.clear();
 	}
-	leftPanel.listInputFiles.setModel(&inputListModel);
+	leftPanel.listInputFiles.updateContent();
 }
 void MainComponent::destinationFolderButtonClicked()
 {
@@ -115,9 +127,33 @@ void MainComponent::destinationFolderButtonClicked()
 }
 void MainComponent::runProcessButtonClicked()
 {
-	if (inputListModel.getNumRows() == 0 || leftPanel.lblDestFolder.getText() == leftPanel.tagNoDestinationFolder)
+	if (inputListModel.getNumRows() == 0)
 	{
-
+		AlertWindow dlg("Parameter Error", "No Input Files", AlertWindow::AlertIconType::WarningIcon);
+		dlg.addButton("OK", 1);
+		dlg.setUsingNativeTitleBar(true);
+		dlg.runModalLoop();
+		return;
 	}
+	if (leftPanel.lblDestFolder.getText() == leftPanel.tagNoDestinationFolder)
+	{
+		AlertWindow dlg("Parameter Error", "No Output Folder", AlertWindow::AlertIconType::WarningIcon);
+		dlg.addButton("OK", 1);
+		dlg.setUsingNativeTitleBar(true);
+		dlg.runModalLoop();
+		return;
+	}
+	if (destinationFolder == inputFolder)
+	{
+		AlertWindow dlg("Parameter Error", "Input and Output folders are the same", AlertWindow::AlertIconType::WarningIcon);
+		dlg.addButton("OK", 1);
+		dlg.setUsingNativeTitleBar(true);
+		dlg.runModalLoop();
+		return;
+	}
+	processParams.inputFiles = inputListModel.data;
+	processParams.destinationFolder = destinationFolder;
+	processParams.dBLufsTarget = mainPanel.sldLUFSTarget.getValue();
+	processParams.dBLimiterCeiling = mainPanel.sldLimiterCeiling.getValue();
 }
 #pragma endregion
