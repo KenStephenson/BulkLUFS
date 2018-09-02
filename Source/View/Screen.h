@@ -21,8 +21,9 @@ static class ColourFactory
 			LABEL_TEXT_COLOUR = 2,
 			BUTTON_BK_COLOUR = 3,
 			BUTTON_TEXT_COLOUR = 4,
-			LIST_BK_COLOUR = 5,
+			LIST_INPUTS_COLOUR = 5,
 			LIST_OUTLINE_COLOUR = 6,
+			LIST_OUTPUTS_COLOUR = 7,
 		};
 		static Colour getColour(ThemeComponent item)
 		{
@@ -44,8 +45,11 @@ static class ColourFactory
 			case ThemeComponent::BUTTON_TEXT_COLOUR:
 				c = Colours::white;
 				break;
-			case ThemeComponent::LIST_BK_COLOUR:
+			case ThemeComponent::LIST_INPUTS_COLOUR:
 				c = Colours::aliceblue;
+				break;
+			case ThemeComponent::LIST_OUTPUTS_COLOUR:
+				c = Colours::lightgoldenrodyellow;
 				break;
 			case ThemeComponent::LIST_OUTLINE_COLOUR:
 				c = Colours::black;
@@ -69,7 +73,7 @@ public:
 		btnAddFiles.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 		btnAddFiles.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 
-		listInputFiles.setColour(ListBox::backgroundColourId, ColourFactory::getColour(theme::LIST_BK_COLOUR));
+		listInputFiles.setColour(ListBox::backgroundColourId, ColourFactory::getColour(theme::LIST_INPUTS_COLOUR));
 		listInputFiles.setColour(ListBox::outlineColourId, ColourFactory::getColour(theme::LIST_OUTLINE_COLOUR));
 
 		btnDestFolder.setButtonText("2 - Select Output Folder");
@@ -168,7 +172,7 @@ public:
 		progressBar = std::make_unique<ProgressBar>(progressValue);
 		progressBar->setPercentageDisplay(true);
 
-		listOutputFiles.setColour(ListBox::backgroundColourId, ColourFactory::getColour(theme::LIST_BK_COLOUR));
+		listOutputFiles.setColour(ListBox::backgroundColourId, ColourFactory::getColour(theme::LIST_OUTPUTS_COLOUR));
 		listOutputFiles.setColour(ListBox::outlineColourId, ColourFactory::getColour(theme::LIST_OUTLINE_COLOUR));
 
 		addAndMakeVisible(&btnRunProcess);
@@ -203,7 +207,6 @@ public:
 		fbCentrePanel.items.add(FlexItem(sldLimiterCeiling).withMinHeight(50.0f).withMaxHeight(50.0f).withMinWidth(100.0f).withFlex(1));
 		fbCentrePanel.items.add(FlexItem(*progressBar.get()).withMinHeight(12.0f).withMaxHeight(12.0f).withMinWidth(100.0f).withFlex(1));
 		fbCentrePanel.items.add(FlexItem(listOutputFiles).withMinHeight(200.0f).withMinWidth(100.0f).withFlex(1));
-
 
 		//==============================================================================
 		FlexBox fb;
