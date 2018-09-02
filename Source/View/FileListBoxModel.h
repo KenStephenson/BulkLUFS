@@ -16,10 +16,10 @@ public:
 	virtual void ModelRefresh(String tag) {};
 };
 
-class InputFileListBoxModel : public ListBoxModel
+class FileListBoxModel : public ListBoxModel
 {
 	public:
-		InputFileListBoxModel()
+		FileListBoxModel()
 		{
 			data.clear();
 		}

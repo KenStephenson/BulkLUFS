@@ -10,7 +10,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "./View/Screen.h"
-#include "./View/InputFileListBoxModel.h"
+#include "./View/FileListBoxModel.h"
 
 //==============================================================================
 /*
@@ -21,6 +21,7 @@ class ProcessParameters
 {
 	public:
 		Array<File> inputFiles;
+		Array<File> outputFiles;
 		File destinationFolder;
 		float dBLufsTarget;
 		float dBLimiterCeiling;
@@ -50,19 +51,22 @@ class MainComponent   : public AudioAppComponent, public ListBoxModelListener
 
 		void initialiseUserInterface();
 
-
 		void addFilesButtonClicked();
 		void destinationFolderButtonClicked();
 		void runProcessButtonClicked();
+		bool validateProcessorParameters();
 
 		InputPanel leftPanel;
 		ControlsPanel mainPanel;
-		InputFileListBoxModel inputListModel;
 		File inputFolder;
 		File destinationFolder;
+
+		FileListBoxModel inputListModel;
+		FileListBoxModel outputListModel;
 		ProcessParameters processParams;
 
-		const String tagInputList = "INPUT"; 
+		const String tagInputList = "INPUT";
+		const String tagOutputList = "OUTPUT";
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

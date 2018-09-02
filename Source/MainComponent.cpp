@@ -87,9 +87,11 @@ void MainComponent::initialiseUserInterface()
 	mainPanel.btnRunProcess.onClick = [this] { runProcessButtonClicked(); };
 
 	inputListModel.setListener(this, tagInputList);
-	leftPanel.listInputFiles.setModel(&inputListModel);
-}
+	outputListModel.setListener(this, tagOutputList);
 
+	leftPanel.listInputFiles.setModel(&inputListModel);
+	mainPanel.listOutputFiles.setModel(&outputListModel);
+}
 void MainComponent::ModelRefresh(String tag)
 {
 	if (tag == tagInputList)
@@ -97,18 +99,13 @@ void MainComponent::ModelRefresh(String tag)
 		leftPanel.listInputFiles.updateContent();
 	}
 };
-
 void MainComponent::addFilesButtonClicked()
 {
 	FileChooser chooser("Select files to process...", File::nonexistent, "*.wav");
 	if (chooser.browseForMultipleFilesToOpen())
 	{
-		inputListModel.data = chooser.getResults();
+		inputListModel.data.addArray(chooser.getResults());
 		inputFolder = inputListModel.data[0].getParentDirectory();
-	}
-	else
-	{
-		inputListModel.data.clear();
 	}
 	leftPanel.listInputFiles.updateContent();
 }
@@ -127,13 +124,27 @@ void MainComponent::destinationFolderButtonClicked()
 }
 void MainComponent::runProcessButtonClicked()
 {
+	if (validateProcessorParameters() == false)
+	{
+		return;
+	}
+
+	// Collect the Process Parameters
+	processParams.dBLufsTarget = mainPanel.sldLUFSTarget.getValue();
+	processParams.dBLimiterCeiling = mainPanel.sldLimiterCeiling.getValue();
+	processParams.inputFiles = inputListModel.data;
+	processParams.outputFiles.clear();
+	processParams.destinationFolder = destinationFolder;
+}
+bool MainComponent::validateProcessorParameters()
+{
 	if (inputListModel.getNumRows() == 0)
 	{
 		AlertWindow dlg("Parameter Error", "No Input Files", AlertWindow::AlertIconType::WarningIcon);
 		dlg.addButton("OK", 1);
 		dlg.setUsingNativeTitleBar(true);
 		dlg.runModalLoop();
-		return;
+		return false;
 	}
 	if (leftPanel.lblDestFolder.getText() == leftPanel.tagNoDestinationFolder)
 	{
@@ -141,7 +152,7 @@ void MainComponent::runProcessButtonClicked()
 		dlg.addButton("OK", 1);
 		dlg.setUsingNativeTitleBar(true);
 		dlg.runModalLoop();
-		return;
+		return false;
 	}
 	if (destinationFolder == inputFolder)
 	{
@@ -149,11 +160,8 @@ void MainComponent::runProcessButtonClicked()
 		dlg.addButton("OK", 1);
 		dlg.setUsingNativeTitleBar(true);
 		dlg.runModalLoop();
-		return;
+		return false;
 	}
-	processParams.inputFiles = inputListModel.data;
-	processParams.destinationFolder = destinationFolder;
-	processParams.dBLufsTarget = mainPanel.sldLUFSTarget.getValue();
-	processParams.dBLimiterCeiling = mainPanel.sldLimiterCeiling.getValue();
+	return true;
 }
 #pragma endregion
