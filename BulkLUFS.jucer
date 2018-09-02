@@ -5,6 +5,8 @@
   <MAINGROUP id="njZJjI" name="BulkLUFS">
     <GROUP id="{01FF0F1F-8943-8B3A-FD46-D36D2D07B328}" name="Source">
       <GROUP id="{CF1EAD79-1B62-FCFD-6EBA-831CED15C230}" name="View">
+        <FILE id="Kb2p5J" name="InputFileListBoxModel.h" compile="0" resource="0"
+              file="Source/View/InputFileListBoxModel.h"/>
         <FILE id="sbx1Sc" name="Screen.h" compile="0" resource="0" file="Source/View/Screen.h"/>
       </GROUP>
       <GROUP id="{55EACCF6-178E-DBC0-E5EF-CDD7CA0B9C63}" name="Processors">

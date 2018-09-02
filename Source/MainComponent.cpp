@@ -25,7 +25,7 @@ MainComponent::~MainComponent()
     shutdownAudio();
 }
 
-//==============================================================================
+#pragma region Audio Processing
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
 {
     // This function will be called when the audio device is started, or when
@@ -36,7 +36,6 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 
     // For more details, see the help for AudioProcessor::prepareToPlay()
 }
-
 void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
     // Your audio-processing code goes here!
@@ -47,7 +46,6 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
     // (to prevent the output of random noise)
     bufferToFill.clearActiveBufferRegion();
 }
-
 void MainComponent::releaseResources()
 {
     // This will be called when the audio device stops, or when it is being
@@ -55,8 +53,10 @@ void MainComponent::releaseResources()
 
     // For more details, see the help for AudioProcessor::releaseResources()
 }
+#pragma endregion
 
-//==============================================================================
+
+#pragma region User Interface
 void MainComponent::paint (Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
@@ -67,7 +67,6 @@ void MainComponent::paint (Graphics& g)
 	g.drawRect(leftPanel.getLocalBounds());
 	g.drawRect(mainPanel.getLocalBounds());
 }
-
 void MainComponent::resized()
 {
 	Grid grid;
@@ -78,7 +77,6 @@ void MainComponent::resized()
 	grid.items = { GridItem(leftPanel), GridItem(mainPanel), };
 	grid.performLayout(getLocalBounds());
 }
-
 void MainComponent::initialiseUserInterface()
 {
 	addAndMakeVisible(leftPanel);
@@ -86,12 +84,40 @@ void MainComponent::initialiseUserInterface()
 
 	leftPanel.btnAddFiles.onClick = [this] { addFilesButtonClicked(); };
 	leftPanel.btnDestFolder.onClick = [this] { destinationFolderButtonClicked(); };
+	mainPanel.btnRunProcess.onClick = [this] { runProcessButtonClicked(); };
 }
-
 void MainComponent::addFilesButtonClicked()
 {
+	FileChooser chooser("Select files to process...", File::nonexistent, "*.wav");
+	if (chooser.browseForMultipleFilesToOpen())
+	{
+		inputListModel.data = chooser.getResults();
+		inputFolder = inputListModel.data[0].getParentDirectory();
+	}
+	else
+	{
+		inputListModel.data.clear();
+	}
+	leftPanel.listInputFiles.setModel(&inputListModel);
 }
-
 void MainComponent::destinationFolderButtonClicked()
 {
+	FileChooser chooser("Select output folder...", inputFolder, "*.*");
+	if (chooser.browseForDirectory())
+	{
+		destinationFolder = chooser.getResult();
+		leftPanel.lblDestFolder.setText(destinationFolder.getFileNameWithoutExtension(), dontSendNotification);
+	}
+	else
+	{
+		leftPanel.lblDestFolder.setText(leftPanel.tagNoDestinationFolder, dontSendNotification);
+	}
 }
+void MainComponent::runProcessButtonClicked()
+{
+	if (inputListModel.getNumRows() == 0 || leftPanel.lblDestFolder.getText() == leftPanel.tagNoDestinationFolder)
+	{
+
+	}
+}
+#pragma endregion
