@@ -13,10 +13,11 @@ MainComponent::MainComponent()
 {
 	initialiseUserInterface();
 
-	setSize(600, 600);
-
     // specify the number of input and output channels that we want to open
     setAudioChannels (2, 2);
+	formatManager.registerBasicFormats();
+
+	setSize(600, 600);
 }
 
 MainComponent::~MainComponent()
@@ -26,32 +27,99 @@ MainComponent::~MainComponent()
 }
 
 #pragma region Audio Processing
+
+void MainComponent::runProcess()
+{
+	if (validateProcessorParameters() == false)
+	{
+		return;
+	}
+
+	// Collect the Process Parameters
+	dBLufsTarget = mainPanel.sldLUFSTarget.getValue();
+	dBLimiterCeiling = mainPanel.sldLimiterCeiling.getValue();
+	inputFiles = inputListModel.data;
+	outputFiles.clear();
+
+	for (activeIndex = 0; activeIndex < inputFiles.size(); activeIndex++)
+	{
+		File activeFile = inputFiles[activeIndex];
+		isInitialAnalysis = false;
+		if (loadFileFromDisk(activeFile))
+		{
+			isInitialAnalysis = true;
+			prepareToPlay((int)((double)fileSampleRate / (double)100), fileSampleRate);
+		}
+	}
+}
+bool MainComponent::loadFileFromDisk(File srcFile)
+{
+	if (auto* reader = formatManager.createReaderFor(srcFile))
+	{
+		std::unique_ptr<AudioFormatReaderSource> newSource(new AudioFormatReaderSource(reader, true));
+		readerSource.reset(newSource.release());
+		fileSampleRate = reader->sampleRate;
+		bitsPerSample = reader->bitsPerSample;
+		return true;
+	}
+	fileSampleRate = 0;
+	bitsPerSample = 0;
+	return false;
+}
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
 {
-    // This function will be called when the audio device is started, or when
-    // its settings (i.e. sample rate, block size, etc) are changed.
+	if (readerSource.get() != nullptr)
+	{
+		mainPanel.progressValue = 0;
 
-    // You can use this function to initialise any resources you might need,
-    // but be careful - it will be called on the audio thread, not the GUI thread.
+		readerSource->prepareToPlay(samplesPerBlockExpected, sampleRate);
+		fileTotalLength = readerSource->getTotalLength();
 
-    // For more details, see the help for AudioProcessor::prepareToPlay()
+		ebuLoudnessMeter.reset();
+		ebuLoudnessMeter.prepareToPlay(sampleRate, 2, samplesPerBlockExpected, 20);
+	}
 }
 void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
-    // Your audio-processing code goes here!
+	if (readerSource.get() == nullptr)
+	{
+		bufferToFill.clearActiveBufferRegion();
+	}
+	else
+	{
+		auto maxOutputChannels = 2;
+		
+		readerSource->getNextAudioBlock(bufferToFill);
 
-    // For more details, see the help for AudioProcessor::getNextAudioBlock()
+		fileGetNextReadPosition = readerSource->getNextReadPosition();
+		updateProgressPercentage();
 
-    // Right now we are not producing any data, in which case we need to clear the buffer
-    // (to prevent the output of random noise)
-    bufferToFill.clearActiveBufferRegion();
+		if (isInitialAnalysis)	
+		{
+			// calculate the integrated LUFS value of the file as it is loaded
+			auto* inBuffer = bufferToFill.buffer->getArrayOfReadPointers();
+			AudioSampleBuffer sBuffer;
+			sBuffer.setDataToReferTo((float**)inBuffer, bufferToFill.buffer->getNumChannels(), bufferToFill.numSamples);
+			ebuLoudnessMeter.processBlock(sBuffer);
+			if (fileGetNextReadPosition >= fileTotalLength)
+			{
+				fileDbLufs = ebuLoudnessMeter.getIntegratedLoudness();
+				isInitialAnalysis = false;
+			}
+		}
+		else
+		{
+			//auto* inBuffer = bufferToFill.buffer->getReadPointer(channel, bufferToFill.startSample);
+			//auto* outBuffer = bufferToFill.buffer->getWritePointer(channel, bufferToFill.startSample);
+			//for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
+			//{
+			//	outBuffer[sample] = inBuffer[sample] * level;
+			//}
+		}
+	}
 }
 void MainComponent::releaseResources()
 {
-    // This will be called when the audio device stops, or when it is being
-    // restarted due to a setting change.
-
-    // For more details, see the help for AudioProcessor::releaseResources()
 }
 #pragma endregion
 
@@ -124,17 +192,7 @@ void MainComponent::destinationFolderButtonClicked()
 }
 void MainComponent::runProcessButtonClicked()
 {
-	if (validateProcessorParameters() == false)
-	{
-		return;
-	}
-
-	// Collect the Process Parameters
-	processParams.dBLufsTarget = mainPanel.sldLUFSTarget.getValue();
-	processParams.dBLimiterCeiling = mainPanel.sldLimiterCeiling.getValue();
-	processParams.inputFiles = inputListModel.data;
-	processParams.outputFiles.clear();
-	processParams.destinationFolder = destinationFolder;
+	runProcess();
 }
 bool MainComponent::validateProcessorParameters()
 {
@@ -146,22 +204,31 @@ bool MainComponent::validateProcessorParameters()
 		dlg.runModalLoop();
 		return false;
 	}
-	if (leftPanel.lblDestFolder.getText() == leftPanel.tagNoDestinationFolder)
-	{
-		AlertWindow dlg("Parameter Error", "No Output Folder", AlertWindow::AlertIconType::WarningIcon);
-		dlg.addButton("OK", 1);
-		dlg.setUsingNativeTitleBar(true);
-		dlg.runModalLoop();
-		return false;
-	}
-	if (destinationFolder == inputFolder)
-	{
-		AlertWindow dlg("Parameter Error", "Input and Output folders are the same", AlertWindow::AlertIconType::WarningIcon);
-		dlg.addButton("OK", 1);
-		dlg.setUsingNativeTitleBar(true);
-		dlg.runModalLoop();
-		return false;
-	}
+	//if (leftPanel.lblDestFolder.getText() == leftPanel.tagNoDestinationFolder)
+	//{
+	//	AlertWindow dlg("Parameter Error", "No Output Folder", AlertWindow::AlertIconType::WarningIcon);
+	//	dlg.addButton("OK", 1);
+	//	dlg.setUsingNativeTitleBar(true);
+	//	dlg.runModalLoop();
+	//	return false;
+	//}
+	//if (destinationFolder == inputFolder)
+	//{
+	//	AlertWindow dlg("Parameter Error", "Input and Output folders are the same", AlertWindow::AlertIconType::WarningIcon);
+	//	dlg.addButton("OK", 1);
+	//	dlg.setUsingNativeTitleBar(true);
+	//	dlg.runModalLoop();
+	//	return false;
+	//}
 	return true;
+}
+void MainComponent::updateProgressPercentage()
+{
+	double percent = 0;
+	if (fileTotalLength > 0)
+	{
+		percent = ((double)fileGetNextReadPosition / (double)fileTotalLength);
+	}
+	mainPanel.progressValue = percent;
 }
 #pragma endregion

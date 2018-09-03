@@ -4,24 +4,24 @@
               bundleIdentifier="com.namesoft.BulkLUFS">
   <MAINGROUP id="njZJjI" name="BulkLUFS">
     <GROUP id="{01FF0F1F-8943-8B3A-FD46-D36D2D07B328}" name="Source">
+      <GROUP id="{094F7159-2FFB-F725-19FF-2007D5459B80}" name="Ebu120Loudness">
+        <GROUP id="{33DE3CB4-C404-0E8E-D058-2D50D5959DF0}" name="filters">
+          <FILE id="qbRljr" name="SecondOrderIIRFilter.cpp" compile="1" resource="0"
+                file="Source/Ebu128Loudness/filters/SecondOrderIIRFilter.cpp"/>
+          <FILE id="ErGeZy" name="SecondOrderIIRFilter.h" compile="0" resource="0"
+                file="Source/Ebu128Loudness/filters/SecondOrderIIRFilter.h"/>
+        </GROUP>
+        <FILE id="ohQR24" name="Ebu128LoudnessMeter.cpp" compile="1" resource="0"
+              file="Source/Ebu128Loudness/Ebu128LoudnessMeter.cpp"/>
+        <FILE id="yka8o8" name="Ebu128LoudnessMeter.h" compile="0" resource="0"
+              file="Source/Ebu128Loudness/Ebu128LoudnessMeter.h"/>
+        <FILE id="AyjKJ4" name="MacrosAndJuceHeaders.h" compile="0" resource="0"
+              file="Source/Ebu128Loudness/MacrosAndJuceHeaders.h"/>
+      </GROUP>
       <GROUP id="{CF1EAD79-1B62-FCFD-6EBA-831CED15C230}" name="View">
         <FILE id="Kb2p5J" name="FileListBoxModel.h" compile="0" resource="0"
               file="Source/View/FileListBoxModel.h"/>
         <FILE id="sbx1Sc" name="Screen.h" compile="0" resource="0" file="Source/View/Screen.h"/>
-      </GROUP>
-      <GROUP id="{55EACCF6-178E-DBC0-E5EF-CDD7CA0B9C63}" name="Processors">
-        <GROUP id="{16E909A1-E619-4A57-F526-E493DC63AA79}" name="filters">
-          <FILE id="LneNDy" name="SecondOrderIIRFilter.cpp" compile="1" resource="0"
-                file="Source/Processors/filters/SecondOrderIIRFilter.cpp"/>
-          <FILE id="skuOsw" name="SecondOrderIIRFilter.h" compile="0" resource="0"
-                file="Source/Processors/filters/SecondOrderIIRFilter.h"/>
-        </GROUP>
-        <FILE id="voqRKE" name="Ebu128LoudnessMeter.cpp" compile="1" resource="0"
-              file="Source/Processors/Ebu128LoudnessMeter.cpp"/>
-        <FILE id="SLFNvT" name="Ebu128LoudnessMeter.h" compile="0" resource="0"
-              file="Source/Processors/Ebu128LoudnessMeter.h"/>
-        <FILE id="iIJSmn" name="MacrosAndJuceHeaders.h" compile="0" resource="0"
-              file="Source/Processors/MacrosAndJuceHeaders.h"/>
       </GROUP>
       <FILE id="TBrXb8" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       <FILE id="L9zFbG" name="MainComponent.cpp" compile="1" resource="0"

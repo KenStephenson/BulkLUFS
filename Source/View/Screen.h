@@ -204,7 +204,7 @@ class ControlsPanel : public Component
 			fbCentrePanel.items.add(FlexItem(sldLUFSTarget).withMinHeight(50.0f).withMaxHeight(50.0f).withMinWidth(100.0f).withFlex(1));
 			fbCentrePanel.items.add(FlexItem(lblLimiterCeiling).withMinHeight(30.0f).withMaxHeight(30.0f).withMinWidth(100.0f).withFlex(1));
 			fbCentrePanel.items.add(FlexItem(sldLimiterCeiling).withMinHeight(50.0f).withMaxHeight(50.0f).withMinWidth(100.0f).withFlex(1));
-			fbCentrePanel.items.add(FlexItem(*progressBar.get()).withMinHeight(12.0f).withMaxHeight(12.0f).withMinWidth(100.0f).withFlex(1));
+			fbCentrePanel.items.add(FlexItem(*progressBar.get()).withMinHeight(30.0f).withMaxHeight(30.0f).withMinWidth(100.0f).withFlex(1));
 			fbCentrePanel.items.add(FlexItem(listOutputFiles).withMinHeight(200.0f).withMinWidth(100.0f).withFlex(1));
 
 			//==============================================================================

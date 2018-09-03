@@ -11,23 +11,14 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "./View/Screen.h"
 #include "./View/FileListBoxModel.h"
+#include "./Ebu128Loudness/Ebu128LoudnessMeter.h"
 
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class ProcessParameters
-{
-	public:
-		Array<File> inputFiles;
-		Array<File> outputFiles;
-		File destinationFolder;
-		float dBLufsTarget;
-		float dBLimiterCeiling;
-};
-
-class MainComponent   : public AudioAppComponent, public ListBoxModelListener
+class MainComponent : public AudioAppComponent, public ListBoxModelListener
 {
 	public:
 		using Track = Grid::TrackInfo;
@@ -48,25 +39,43 @@ class MainComponent   : public AudioAppComponent, public ListBoxModelListener
 		void ModelRefresh(String tag) override;
 
 	private:
-
-		void initialiseUserInterface();
-
-		void addFilesButtonClicked();
-		void destinationFolderButtonClicked();
-		void runProcessButtonClicked();
-		bool validateProcessorParameters();
-
+		// User Interface Parameters
 		InputPanel leftPanel;
 		ControlsPanel mainPanel;
 		File inputFolder;
 		File destinationFolder;
-
 		FileListBoxModel inputListModel;
 		FileListBoxModel outputListModel;
-		ProcessParameters processParams;
-
 		const String tagInputList = "INPUT";
 		const String tagOutputList = "OUTPUT";
 
-		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
+		void initialiseUserInterface();
+		void addFilesButtonClicked();
+		void destinationFolderButtonClicked();
+		void runProcessButtonClicked();
+		void updateProgressPercentage();
+
+
+		// Loudness Processing Parameters
+		int activeIndex;
+		float dBLufsTarget;
+		float dBLimiterCeiling;
+		double fileSampleRate;
+		double bitsPerSample;
+		Array<File> inputFiles;
+		Array<File> outputFiles;
+
+		AudioFormatManager formatManager;
+		std::unique_ptr<AudioFormatReaderSource> readerSource;
+		Ebu128LoudnessMeter ebuLoudnessMeter;
+		int64 fileTotalLength;
+		int64 fileGetNextReadPosition;
+		float fileDbLufs;
+
+		bool isInitialAnalysis;
+		void runProcess();
+		bool validateProcessorParameters();
+		bool loadFileFromDisk(File srcFile);
+
+		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
