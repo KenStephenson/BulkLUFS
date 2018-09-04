@@ -12,6 +12,7 @@
 #include "./View/Screen.h"
 #include "./View/FileListBoxModel.h"
 #include "./Ebu128Loudness/Ebu128LoudnessMeter.h"
+#include "./GainProcessor/GainProcessor.h"
 
 //==============================================================================
 /*
@@ -21,8 +22,11 @@
 class MainComponent : public AudioAppComponent, public ListBoxModelListener
 {
 	public:
+		//==============================================================================
 		using Track = Grid::TrackInfo;
-	
+		using AudioGraphIOProcessor = AudioProcessorGraph::AudioGraphIOProcessor;
+		using Node = AudioProcessorGraph::Node;
+
 		//==============================================================================
 		MainComponent();
 		~MainComponent();
@@ -39,7 +43,7 @@ class MainComponent : public AudioAppComponent, public ListBoxModelListener
 		void ModelRefresh(String tag) override;
 
 	private:
-		// User Interface Parameters
+#pragma region User Interface Parameters
 		InputPanel leftPanel;
 		ControlsPanel mainPanel;
 		File inputFolder;
@@ -54,9 +58,16 @@ class MainComponent : public AudioAppComponent, public ListBoxModelListener
 		void destinationFolderButtonClicked();
 		void runProcessButtonClicked();
 		void updateProgressPercentage();
+#pragma endregion
 
+#pragma region Process Parameters
+		enum PassID
+		{
+			ebuLoudness = 0,
+			gain = 1,
+			limiter = 2,
+		};
 
-		// Loudness Processing Parameters
 		int activeIndex;
 		float dBLufsTarget;
 		float dBLimiterCeiling;
@@ -64,18 +75,28 @@ class MainComponent : public AudioAppComponent, public ListBoxModelListener
 		double bitsPerSample;
 		Array<File> inputFiles;
 		Array<File> outputFiles;
-
-		AudioFormatManager formatManager;
-		std::unique_ptr<AudioFormatReaderSource> readerSource;
-		Ebu128LoudnessMeter ebuLoudnessMeter;
 		int64 fileTotalLength;
 		int64 fileGetNextReadPosition;
 		float fileDbLufs;
+		PassID passID;
 
-		bool isInitialAnalysis;
 		void runProcess();
+
 		bool validateProcessorParameters();
 		bool loadFileFromDisk(File srcFile);
+#pragma endregion
+
+#pragma region Audio Processor Rack
+		AudioFormatManager formatManager;
+		std::unique_ptr<AudioFormatReaderSource> readerSource;
+		std::unique_ptr<MemoryAudioSource> memorySource;
+
+		std::unique_ptr<Ebu128LoudnessMeter> ebuLoudnessMeter;
+		std::unique_ptr<GainProcessor> gainProcessor;
+		std::unique_ptr<FilterProcessor> filterProcessor;
+
+		void CreateMemoryAudioSource();
+#pragma endregion
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

@@ -13,8 +13,12 @@ MainComponent::MainComponent()
 {
 	initialiseUserInterface();
 
-    // specify the number of input and output channels that we want to open
-    setAudioChannels (2, 2);
+	ebuLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
+	gainProcessor = std::make_unique<GainProcessor>();
+	filterProcessor = std::make_unique<FilterProcessor>();
+
+	setAudioChannels (2, 2);
+
 	formatManager.registerBasicFormats();
 
 	setSize(600, 600);
@@ -27,7 +31,6 @@ MainComponent::~MainComponent()
 }
 
 #pragma region Audio Processing
-
 void MainComponent::runProcess()
 {
 	if (validateProcessorParameters() == false)
@@ -43,11 +46,11 @@ void MainComponent::runProcess()
 
 	for (activeIndex = 0; activeIndex < inputFiles.size(); activeIndex++)
 	{
+		passID = PassID::ebuLoudness;
+
 		File activeFile = inputFiles[activeIndex];
-		isInitialAnalysis = false;
 		if (loadFileFromDisk(activeFile))
 		{
-			isInitialAnalysis = true;
 			prepareToPlay((int)((double)fileSampleRate / (double)100), fileSampleRate);
 		}
 	}
@@ -58,25 +61,54 @@ bool MainComponent::loadFileFromDisk(File srcFile)
 	{
 		std::unique_ptr<AudioFormatReaderSource> newSource(new AudioFormatReaderSource(reader, true));
 		readerSource.reset(newSource.release());
+
+		fileTotalLength = readerSource->getTotalLength();
 		fileSampleRate = reader->sampleRate;
 		bitsPerSample = reader->bitsPerSample;
+
+		CreateMemoryAudioSource();
+
 		return true;
 	}
 	fileSampleRate = 0;
 	bitsPerSample = 0;
 	return false;
 }
+
+void MainComponent::CreateMemoryAudioSource()
+{
+	AudioFormatReader* fmtReader = readerSource->getAudioFormatReader();
+	AudioBuffer<float> audioBuffer(2, fileTotalLength);
+	fmtReader->read(&audioBuffer, 0, fileTotalLength, 0, true, true);
+	memorySource = std::make_unique<MemoryAudioSource>(audioBuffer, true, false);
+}
+
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
 {
 	if (readerSource.get() != nullptr)
 	{
+		leftPanel.setEnabled(false);
+		mainPanel.setEnabled(false);
 		mainPanel.progressValue = 0;
+		fileGetNextReadPosition = 0;
+		int samplesPerBlock = (int)((double)fileSampleRate / (double)100);
+
+		switch (passID)
+		{
+		case MainComponent::ebuLoudness:
+			ebuLoudnessMeter->reset();
+			ebuLoudnessMeter->prepareToPlay(fileSampleRate, 2, samplesPerBlock, 10);
+			break;
+		case MainComponent::gain:
+			gainProcessor->prepareToPlay(fileSampleRate, samplesPerBlock);
+			break;
+		case MainComponent::limiter:
+			return;
+		default:
+			return;
+		}
 
 		readerSource->prepareToPlay(samplesPerBlockExpected, sampleRate);
-		fileTotalLength = readerSource->getTotalLength();
-
-		ebuLoudnessMeter.reset();
-		ebuLoudnessMeter.prepareToPlay(sampleRate, 2, samplesPerBlockExpected, 20);
 	}
 }
 void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
@@ -84,43 +116,57 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 	if (readerSource.get() == nullptr)
 	{
 		bufferToFill.clearActiveBufferRegion();
+		return;
 	}
-	else
-	{
-		auto maxOutputChannels = 2;
 		
-		readerSource->getNextAudioBlock(bufferToFill);
+	readerSource->getNextAudioBlock(bufferToFill);
+	fileGetNextReadPosition = readerSource->getNextReadPosition();
+	updateProgressPercentage();
 
-		fileGetNextReadPosition = readerSource->getNextReadPosition();
-		updateProgressPercentage();
+	auto* inBuffer = bufferToFill.buffer->getArrayOfReadPointers();
+	AudioSampleBuffer sBuffer;
+	sBuffer.setDataToReferTo((float**)inBuffer, bufferToFill.buffer->getNumChannels(), bufferToFill.numSamples);
+		
+	switch (passID)
+	{
+		case MainComponent::ebuLoudness:
+			ebuLoudnessMeter->processBlock(sBuffer);
+			break;
+		case MainComponent::gain:
+			break;
+		case MainComponent::limiter:
+			break;
+		default:
+			break;
+	}
+		
+	if (fileGetNextReadPosition >= fileTotalLength)
+	{
+		switch (passID)
+		{
+		case MainComponent::ebuLoudness:
+			fileDbLufs = ebuLoudnessMeter->getIntegratedLoudness();
 
-		if (isInitialAnalysis)	
-		{
-			// calculate the integrated LUFS value of the file as it is loaded
-			auto* inBuffer = bufferToFill.buffer->getArrayOfReadPointers();
-			AudioSampleBuffer sBuffer;
-			sBuffer.setDataToReferTo((float**)inBuffer, bufferToFill.buffer->getNumChannels(), bufferToFill.numSamples);
-			ebuLoudnessMeter.processBlock(sBuffer);
-			if (fileGetNextReadPosition >= fileTotalLength)
-			{
-				fileDbLufs = ebuLoudnessMeter.getIntegratedLoudness();
-				isInitialAnalysis = false;
-			}
-		}
-		else
-		{
-			//auto* inBuffer = bufferToFill.buffer->getReadPointer(channel, bufferToFill.startSample);
-			//auto* outBuffer = bufferToFill.buffer->getWritePointer(channel, bufferToFill.startSample);
-			//for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
-			//{
-			//	outBuffer[sample] = inBuffer[sample] * level;
-			//}
+			// Initiate the second pass
+			passID = PassID::gain;
+			prepareToPlay((int)((double)fileSampleRate / (double)100), fileSampleRate);
+			break;
+		case MainComponent::gain:
+			leftPanel.setEnabled(true);
+			mainPanel.setEnabled(true);
+			break;
+		case MainComponent::limiter:
+			break;
+		default:
+			break;
 		}
 	}
 }
 void MainComponent::releaseResources()
 {
 }
+
+
 #pragma endregion
 
 
