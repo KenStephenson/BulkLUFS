@@ -13,13 +13,12 @@ MainComponent::MainComponent()
 {
 	initialiseUserInterface();
 
-	ebuLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
-	gainProcessor = std::make_unique<GainProcessor>();
-	filterProcessor = std::make_unique<FilterProcessor>();
+	//ebuLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
+	//gainProcessor = std::make_unique<GainProcessor>();
+	//filterProcessor = std::make_unique<FilterProcessor>();
+	//formatManager.registerBasicFormats();
 
 	setAudioChannels (2, 2);
-
-	formatManager.registerBasicFormats();
 
 	setSize(600, 600);
 }
@@ -39,128 +38,153 @@ void MainComponent::runProcess()
 	}
 
 	// Collect the Process Parameters
-	dBLufsTarget = mainPanel.sldLUFSTarget.getValue();
-	dBLimiterCeiling = mainPanel.sldLimiterCeiling.getValue();
+	//dBLufsTarget = mainPanel.sldLUFSTarget.getValue();
+	//dBLimiterCeiling = mainPanel.sldLimiterCeiling.getValue();
 	inputFiles = inputListModel.data;
 	outputFiles.clear();
 
 	for (activeIndex = 0; activeIndex < inputFiles.size(); activeIndex++)
 	{
-		passID = PassID::ebuLoudness;
+		//passID = PassID::ebuLoudness;
 
 		File activeFile = inputFiles[activeIndex];
-		if (loadFileFromDisk(activeFile))
-		{
-			prepareToPlay((int)((double)fileSampleRate / (double)100), fileSampleRate);
-		}
-	}
-}
-bool MainComponent::loadFileFromDisk(File srcFile)
-{
-	if (auto* reader = formatManager.createReaderFor(srcFile))
-	{
-		std::unique_ptr<AudioFormatReaderSource> newSource(new AudioFormatReaderSource(reader, true));
-		readerSource.reset(newSource.release());
+		LoudnessTaskParameters params;
+		params.inputFile = activeFile;
+		params.outputFolder = destinationFolder;
+		params.parentComponent = this;
+		params.dBLufsTarget = mainPanel.sldLUFSTarget.getValue();
+		params.dBLimiterCeiling = mainPanel.sldLimiterCeiling.getValue();
 
-		fileTotalLength = readerSource->getTotalLength();
-		fileSampleRate = reader->sampleRate;
-		bitsPerSample = reader->bitsPerSample;
-
-		CreateMemoryAudioSource();
-
-		return true;
-	}
-	fileSampleRate = 0;
-	bitsPerSample = 0;
-	return false;
-}
-
-void MainComponent::CreateMemoryAudioSource()
-{
-	AudioFormatReader* fmtReader = readerSource->getAudioFormatReader();
-	AudioBuffer<float> audioBuffer(2, fileTotalLength);
-	fmtReader->read(&audioBuffer, 0, fileTotalLength, 0, true, true);
-	memorySource = std::make_unique<MemoryAudioSource>(audioBuffer, true, false);
-}
-
-void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
-{
-	if (readerSource.get() != nullptr)
-	{
 		leftPanel.setEnabled(false);
 		mainPanel.setEnabled(false);
 		mainPanel.progressValue = 0;
-		fileGetNextReadPosition = 0;
-		int samplesPerBlock = (int)((double)fileSampleRate / (double)100);
-
-		switch (passID)
+		LoudnessTaskThread m(params);
+		if (m.runThread())
 		{
-		case MainComponent::ebuLoudness:
-			ebuLoudnessMeter->reset();
-			ebuLoudnessMeter->prepareToPlay(fileSampleRate, 2, samplesPerBlock, 10);
-			break;
-		case MainComponent::gain:
-			gainProcessor->prepareToPlay(fileSampleRate, samplesPerBlock);
-			break;
-		case MainComponent::limiter:
-			return;
-		default:
-			return;
+			// thread finished normally..
+			leftPanel.setEnabled(true);
+			mainPanel.setEnabled(true);
+		}
+		else
+		{
+			// user pressed the cancel button..
+			leftPanel.setEnabled(true);
+			mainPanel.setEnabled(true);
 		}
 
-		readerSource->prepareToPlay(samplesPerBlockExpected, sampleRate);
+
+		//if (loadFileFromDisk(activeFile))
+		//{
+		//	prepareToPlay((int)((double)fileSampleRate / (double)100), fileSampleRate);
+		//}
 	}
+}
+//bool MainComponent::loadFileFromDisk(File srcFile)
+//{
+//	if (auto* reader = formatManager.createReaderFor(srcFile))
+//	{
+//		std::unique_ptr<AudioFormatReaderSource> newSource(new AudioFormatReaderSource(reader, true));
+//		readerSource.reset(newSource.release());
+//
+//		fileTotalLength = readerSource->getTotalLength();
+//		fileSampleRate = reader->sampleRate;
+//		bitsPerSample = reader->bitsPerSample;
+//
+//		//CreateMemoryAudioSource();
+//
+//		return true;
+//	}
+//	fileSampleRate = 0;
+//	bitsPerSample = 0;
+//	return false;
+//}
+//
+//void MainComponent::CreateMemoryAudioSource()
+//{
+//	AudioFormatReader* fmtReader = readerSource->getAudioFormatReader();
+//	AudioBuffer<float> audioBuffer(2, fileTotalLength);
+//	fmtReader->read(&audioBuffer, 0, fileTotalLength, 0, true, true);
+//	memorySource = std::make_unique<MemoryAudioSource>(audioBuffer, true, false);
+//}
+
+void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
+{
+	//if (readerSource.get() != nullptr)
+	//{
+	//	leftPanel.setEnabled(false);
+	//	mainPanel.setEnabled(false);
+	//	mainPanel.progressValue = 0;
+	//	fileGetNextReadPosition = 0;
+	//	int samplesPerBlock = (int)((double)fileSampleRate / (double)100);
+
+	//	switch (passID)
+	//	{
+	//	case MainComponent::ebuLoudness:
+	//		ebuLoudnessMeter->reset();
+	//		ebuLoudnessMeter->prepareToPlay(fileSampleRate, 2, samplesPerBlock, 10);
+	//		break;
+	//	case MainComponent::gain:
+	//		gainProcessor->prepareToPlay(fileSampleRate, samplesPerBlock);
+	//		break;
+	//	case MainComponent::limiter:
+	//		return;
+	//	default:
+	//		return;
+	//	}
+
+	//	readerSource->prepareToPlay(samplesPerBlockExpected, sampleRate);
+	//}
 }
 void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
-	if (readerSource.get() == nullptr)
-	{
-		bufferToFill.clearActiveBufferRegion();
-		return;
-	}
-		
-	readerSource->getNextAudioBlock(bufferToFill);
-	fileGetNextReadPosition = readerSource->getNextReadPosition();
-	updateProgressPercentage();
+	//if (readerSource.get() == nullptr)
+	//{
+	//	bufferToFill.clearActiveBufferRegion();
+	//	return;
+	//}
+	//	
+	//readerSource->getNextAudioBlock(bufferToFill);
+	//fileGetNextReadPosition = readerSource->getNextReadPosition();
+	//updateProgressPercentage();
 
-	auto* inBuffer = bufferToFill.buffer->getArrayOfReadPointers();
-	AudioSampleBuffer sBuffer;
-	sBuffer.setDataToReferTo((float**)inBuffer, bufferToFill.buffer->getNumChannels(), bufferToFill.numSamples);
-		
-	switch (passID)
-	{
-		case MainComponent::ebuLoudness:
-			ebuLoudnessMeter->processBlock(sBuffer);
-			break;
-		case MainComponent::gain:
-			break;
-		case MainComponent::limiter:
-			break;
-		default:
-			break;
-	}
-		
-	if (fileGetNextReadPosition >= fileTotalLength)
-	{
-		switch (passID)
-		{
-		case MainComponent::ebuLoudness:
-			fileDbLufs = ebuLoudnessMeter->getIntegratedLoudness();
+	//auto* inBuffer = bufferToFill.buffer->getArrayOfReadPointers();
+	//AudioSampleBuffer sBuffer;
+	//sBuffer.setDataToReferTo((float**)inBuffer, bufferToFill.buffer->getNumChannels(), bufferToFill.numSamples);
+	//	
+	//switch (passID)
+	//{
+	//	case MainComponent::ebuLoudness:
+	//		ebuLoudnessMeter->processBlock(sBuffer);
+	//		break;
+	//	case MainComponent::gain:
+	//		break;
+	//	case MainComponent::limiter:
+	//		break;
+	//	default:
+	//		break;
+	//}
+	//	
+	//if (fileGetNextReadPosition >= fileTotalLength)
+	//{
+	//	switch (passID)
+	//	{
+	//	case MainComponent::ebuLoudness:
+	//		fileDbLufs = ebuLoudnessMeter->getIntegratedLoudness();
 
-			// Initiate the second pass
-			passID = PassID::gain;
-			prepareToPlay((int)((double)fileSampleRate / (double)100), fileSampleRate);
-			break;
-		case MainComponent::gain:
-			leftPanel.setEnabled(true);
-			mainPanel.setEnabled(true);
-			break;
-		case MainComponent::limiter:
-			break;
-		default:
-			break;
-		}
-	}
+	//		// Initiate the second pass
+	//		passID = PassID::gain;
+	//		prepareToPlay((int)((double)fileSampleRate / (double)100), fileSampleRate);
+	//		break;
+	//	case MainComponent::gain:
+	//		leftPanel.setEnabled(true);
+	//		mainPanel.setEnabled(true);
+	//		break;
+	//	case MainComponent::limiter:
+	//		break;
+	//	default:
+	//		break;
+	//	}
+	//}
 }
 void MainComponent::releaseResources()
 {
@@ -268,13 +292,13 @@ bool MainComponent::validateProcessorParameters()
 	//}
 	return true;
 }
-void MainComponent::updateProgressPercentage()
-{
-	double percent = 0;
-	if (fileTotalLength > 0)
-	{
-		percent = ((double)fileGetNextReadPosition / (double)fileTotalLength);
-	}
-	mainPanel.progressValue = percent;
-}
+//void MainComponent::updateProgressPercentage()
+//{
+//	double percent = 0;
+//	if (fileTotalLength > 0)
+//	{
+//		percent = ((double)fileGetNextReadPosition / (double)fileTotalLength);
+//	}
+//	mainPanel.progressValue = percent;
+//}
 #pragma endregion

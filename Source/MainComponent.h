@@ -11,8 +11,9 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "./View/Screen.h"
 #include "./View/FileListBoxModel.h"
-#include "./LoudnessProcessor/Ebu128LoudnessMeter.h"
-#include "./GainProcessor/GainProcessor.h"
+//#include "./LoudnessProcessor/Ebu128LoudnessMeter.h"
+//#include "./GainProcessor/GainProcessor.h"
+#include "LoudnessTaskThread.h"
 
 //==============================================================================
 /*
@@ -57,45 +58,46 @@ class MainComponent : public AudioAppComponent, public ListBoxModelListener
 		void addFilesButtonClicked();
 		void destinationFolderButtonClicked();
 		void runProcessButtonClicked();
-		void updateProgressPercentage();
+		//void updateProgressPercentage();
 #pragma endregion
 
 #pragma region Process Parameters
-		enum PassID
-		{
-			ebuLoudness = 0,
-			gain = 1,
-			limiter = 2,
-		};
+		//enum PassID
+		//{
+		//	ebuLoudness = 0,
+		//	gain = 1,
+		//	limiter = 2,
+		//};
 
-		int activeIndex;
-		float dBLufsTarget;
-		float dBLimiterCeiling;
-		double fileSampleRate;
-		double bitsPerSample;
 		Array<File> inputFiles;
 		Array<File> outputFiles;
-		int64 fileTotalLength;
-		int64 fileGetNextReadPosition;
-		float fileDbLufs;
-		PassID passID;
+		int activeIndex;
+
+		//float dBLufsTarget;
+		//float dBLimiterCeiling;
+		//double fileSampleRate;
+		//double bitsPerSample;
+		//int64 fileTotalLength;
+		//int64 fileGetNextReadPosition;
+		//float fileDbLufs;
+		//PassID passID;
 
 		void runProcess();
 
 		bool validateProcessorParameters();
-		bool loadFileFromDisk(File srcFile);
+		//bool loadFileFromDisk(File srcFile);
 #pragma endregion
 
 #pragma region Audio Processor Rack
-		AudioFormatManager formatManager;
-		std::unique_ptr<AudioFormatReaderSource> readerSource;
-		std::unique_ptr<MemoryAudioSource> memorySource;
+		//AudioFormatManager formatManager;
+		//std::unique_ptr<AudioFormatReaderSource> readerSource;
+		//std::unique_ptr<MemoryAudioSource> memorySource;
 
-		std::unique_ptr<Ebu128LoudnessMeter> ebuLoudnessMeter;
-		std::unique_ptr<GainProcessor> gainProcessor;
-		std::unique_ptr<FilterProcessor> filterProcessor;
+		//std::unique_ptr<Ebu128LoudnessMeter> ebuLoudnessMeter;
+		//std::unique_ptr<GainProcessor> gainProcessor;
+		//std::unique_ptr<FilterProcessor> filterProcessor;
 
-		void CreateMemoryAudioSource();
+		//void CreateMemoryAudioSource();
 #pragma endregion
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)

@@ -4,6 +4,10 @@
               bundleIdentifier="com.namesoft.BulkLUFS">
   <MAINGROUP id="njZJjI" name="BulkLUFS">
     <GROUP id="{01FF0F1F-8943-8B3A-FD46-D36D2D07B328}" name="Source">
+      <FILE id="Dp8PEz" name="LoudnessTaskThread.cpp" compile="1" resource="0"
+            file="Source/LoudnessTaskThread.cpp"/>
+      <FILE id="F5Ml8E" name="LoudnessTaskThread.h" compile="0" resource="0"
+            file="Source/LoudnessTaskThread.h"/>
       <GROUP id="{654DB378-FD33-255D-BCC7-A9B5F37776AB}" name="LoudnessProcessor">
         <GROUP id="{D17FE4F2-FC57-29FF-A74F-C0E24B0C14F3}" name="filters">
           <FILE id="K5R3C1" name="SecondOrderIIRFilter.cpp" compile="1" resource="0"
