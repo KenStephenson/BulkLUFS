@@ -11,7 +11,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "./View/Screen.h"
 #include "./View/FileListBoxModel.h"
-#include "./Ebu128Loudness/Ebu128LoudnessMeter.h"
+#include "./LoudnessProcessor/Ebu128LoudnessMeter.h"
 #include "./GainProcessor/GainProcessor.h"
 
 //==============================================================================
