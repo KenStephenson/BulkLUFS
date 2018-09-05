@@ -15,9 +15,9 @@ LoudnessTaskThread::LoudnessTaskThread(LoudnessTaskParameters params)
 {
 	parameters = params;
 
-	ebuLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
 	gainProcessor = std::make_unique<GainProcessor>();
-	filterProcessor = std::make_unique<FilterProcessor>();
+	gainProcessor->setGainDecibels(parameters.gainToApply);
+
 	formatManager.registerBasicFormats();
 }
 
@@ -31,7 +31,7 @@ void LoudnessTaskThread::run()
 	{
 		return;
 	}
-	if (readerSource.get() == nullptr)
+	if (memorySource.get() == nullptr)
 	{
 		return;
 	}
@@ -41,17 +41,15 @@ void LoudnessTaskThread::run()
 	int samplesPerBlock = (int)((double)fileSampleRate / (double)100);
 	updateProgressPercentage();
 
-	passID = PassID::ebuLoudness;
-	ebuLoudnessMeter->reset();
-	ebuLoudnessMeter->prepareToPlay(fileSampleRate, 2, samplesPerBlock, 10);
+	gainProcessor->prepareToPlay(fileSampleRate, samplesPerBlock);
+	memorySource->prepareToPlay(samplesPerBlock, fileSampleRate);
 
-	readerSource->prepareToPlay(samplesPerBlock, fileSampleRate);
-
+	MidiBuffer midiBuffer;
 	while (taskIsActive)
 	{
 		AudioBuffer<float> audioBuffer(2, samplesPerBlock);
 		AudioSourceChannelInfo bufferToFill(&audioBuffer, 0, samplesPerBlock);
-		readerSource->getNextAudioBlock(bufferToFill);
+		memorySource->getNextAudioBlock(bufferToFill);
 
 		fileGetNextReadPosition += bufferToFill.numSamples;	// readerSource->getNextReadPosition();
 		updateProgressPercentage();
@@ -60,38 +58,11 @@ void LoudnessTaskThread::run()
 		AudioSampleBuffer sBuffer;
 		sBuffer.setDataToReferTo((float**)inBuffer, bufferToFill.buffer->getNumChannels(), bufferToFill.numSamples);
 
-		switch (passID)
-		{
-		case LoudnessTaskThread::ebuLoudness:
-			ebuLoudnessMeter->processBlock(sBuffer);
-			break;
-		case LoudnessTaskThread::gain:
-			break;
-		case LoudnessTaskThread::limiter:
-			break;
-		default:
-			break;
-		}
+		gainProcessor->processBlock(sBuffer, midiBuffer);
 
 		if (fileGetNextReadPosition >= fileTotalLength)
 		{
-			switch (passID)
-			{
-			case LoudnessTaskThread::ebuLoudness:
-				fileDbLufs = ebuLoudnessMeter->getIntegratedLoudness();
-				taskIsActive = false;
-
-				// Initiate the second pass
-				//passID = PassID::gain;
-				//prepareToPlay((int)((double)fileSampleRate / (double)100), fileSampleRate);
-				break;
-			case LoudnessTaskThread::gain:
-				break;
-			case LoudnessTaskThread::limiter:
-				break;
-			default:
-				break;
-			}
+			taskIsActive = false;
 		}
 		if (threadShouldExit())
 		{
@@ -105,18 +76,18 @@ bool LoudnessTaskThread::loadFileFromDisk(File srcFile)
 	if (auto* reader = formatManager.createReaderFor(srcFile))
 	{
 		std::unique_ptr<AudioFormatReaderSource> newSource(new AudioFormatReaderSource(reader, true));
-		readerSource.reset(newSource.release());
+		//readerSource.reset(newSource.release());
 		
-		fileTotalLength = readerSource->getTotalLength();
+		fileTotalLength = newSource->getTotalLength();
 		fileSampleRate = reader->sampleRate;
 		bitsPerSample = reader->bitsPerSample;
 
-		//// Move the data into a Memory Audio Source
-		//AudioBuffer<float> audioBuffer(2, fileTotalLength);
-		//AudioFormatReader* fmtReader = newSource->getAudioFormatReader();
-		//fmtReader->read(&audioBuffer, 0, fileTotalLength, 0, true, true);
-		//memorySource = std::make_unique<MemoryAudioSource>(audioBuffer, true, false);
-		//newSource.release();
+		// Move the data into a Memory Audio Source
+		AudioBuffer<float> audioBuffer(2, fileTotalLength);
+		AudioFormatReader* fmtReader = newSource->getAudioFormatReader();
+		fmtReader->read(&audioBuffer, 0, fileTotalLength, 0, true, true);
+		memorySource = std::make_unique<MemoryAudioSource>(audioBuffer, true, false);
+		newSource.release();
 		return true;
 	}
 	fileSampleRate = 0;

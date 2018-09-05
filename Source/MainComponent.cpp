@@ -13,12 +13,11 @@ MainComponent::MainComponent()
 {
 	initialiseUserInterface();
 
-	//ebuLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
-	//gainProcessor = std::make_unique<GainProcessor>();
-	//filterProcessor = std::make_unique<FilterProcessor>();
-	//formatManager.registerBasicFormats();
+	ebuLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
 
 	setAudioChannels (2, 2);
+
+	formatManager.registerBasicFormats();
 
 	setSize(600, 600);
 }
@@ -29,7 +28,7 @@ MainComponent::~MainComponent()
     shutdownAudio();
 }
 
-#pragma region Audio Processing
+#pragma region Initialise Process
 void MainComponent::runProcess()
 {
 	if (validateProcessorParameters() == false)
@@ -38,159 +37,170 @@ void MainComponent::runProcess()
 	}
 
 	// Collect the Process Parameters
-	//dBLufsTarget = mainPanel.sldLUFSTarget.getValue();
-	//dBLimiterCeiling = mainPanel.sldLimiterCeiling.getValue();
+	dBLufsTarget = mainPanel.sldLUFSTarget.getValue();
+	dBLimiterCeiling = mainPanel.sldLimiterCeiling.getValue();
 	inputFiles = inputListModel.data;
 	outputFiles.clear();
 
 	for (activeIndex = 0; activeIndex < inputFiles.size(); activeIndex++)
 	{
-		//passID = PassID::ebuLoudness;
-
-		File activeFile = inputFiles[activeIndex];
-		LoudnessTaskParameters params;
-		params.inputFile = activeFile;
-		params.outputFolder = destinationFolder;
-		params.parentComponent = this;
-		params.dBLufsTarget = mainPanel.sldLUFSTarget.getValue();
-		params.dBLimiterCeiling = mainPanel.sldLimiterCeiling.getValue();
-
-		leftPanel.setEnabled(false);
-		mainPanel.setEnabled(false);
-		mainPanel.progressValue = 0;
-		LoudnessTaskThread m(params);
-		if (m.runThread())
+		activeFile = inputFiles[activeIndex];
+		if (loadFileFromDisk(activeFile))
 		{
-			// thread finished normally..
-			leftPanel.setEnabled(true);
-			mainPanel.setEnabled(true);
+			prepareToPlay((int)((double)fileSampleRate / (double)100), fileSampleRate);
 		}
-		else
-		{
-			// user pressed the cancel button..
-			leftPanel.setEnabled(true);
-			mainPanel.setEnabled(true);
-		}
-
-
-		//if (loadFileFromDisk(activeFile))
-		//{
-		//	prepareToPlay((int)((double)fileSampleRate / (double)100), fileSampleRate);
-		//}
 	}
 }
-//bool MainComponent::loadFileFromDisk(File srcFile)
-//{
-//	if (auto* reader = formatManager.createReaderFor(srcFile))
-//	{
-//		std::unique_ptr<AudioFormatReaderSource> newSource(new AudioFormatReaderSource(reader, true));
-//		readerSource.reset(newSource.release());
-//
-//		fileTotalLength = readerSource->getTotalLength();
-//		fileSampleRate = reader->sampleRate;
-//		bitsPerSample = reader->bitsPerSample;
-//
-//		//CreateMemoryAudioSource();
-//
-//		return true;
-//	}
-//	fileSampleRate = 0;
-//	bitsPerSample = 0;
-//	return false;
-//}
-//
-//void MainComponent::CreateMemoryAudioSource()
-//{
-//	AudioFormatReader* fmtReader = readerSource->getAudioFormatReader();
-//	AudioBuffer<float> audioBuffer(2, fileTotalLength);
-//	fmtReader->read(&audioBuffer, 0, fileTotalLength, 0, true, true);
-//	memorySource = std::make_unique<MemoryAudioSource>(audioBuffer, true, false);
-//}
+bool MainComponent::loadFileFromDisk(File srcFile)
+{
+	if (auto* reader = formatManager.createReaderFor(srcFile))
+	{
+		std::unique_ptr<AudioFormatReaderSource> newSource(new AudioFormatReaderSource(reader, true));
+		transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
+		readerSource.reset(newSource.release());
+		readerSource->setLooping(false);
+		transportSource.addChangeListener(this);
+
+		fileTotalLength = readerSource->getTotalLength();
+		fileSampleRate = reader->sampleRate;
+		bitsPerSample = reader->bitsPerSample;
+		return true;
+	}
+	fileSampleRate = 0;
+	bitsPerSample = 0;
+	return false;
+}
+void MainComponent::WriteBufferToFile(AudioSampleBuffer* gainBuffer)
+{
+
+}
+#pragma endregion
+
+#pragma region Audio Processing
 
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
 {
-	//if (readerSource.get() != nullptr)
-	//{
-	//	leftPanel.setEnabled(false);
-	//	mainPanel.setEnabled(false);
-	//	mainPanel.progressValue = 0;
-	//	fileGetNextReadPosition = 0;
-	//	int samplesPerBlock = (int)((double)fileSampleRate / (double)100);
+	if (readerSource.get() == nullptr)
+	{
+		return;
+	}
+	leftPanel.setEnabled(false);
+	mainPanel.setEnabled(false);
+	mainPanel.progressValue = 0;
+	fileGetNextReadPosition = 0;
+	int samplesPerBlock = (int)((double)fileSampleRate / (double)100);
 
-	//	switch (passID)
-	//	{
-	//	case MainComponent::ebuLoudness:
-	//		ebuLoudnessMeter->reset();
-	//		ebuLoudnessMeter->prepareToPlay(fileSampleRate, 2, samplesPerBlock, 10);
-	//		break;
-	//	case MainComponent::gain:
-	//		gainProcessor->prepareToPlay(fileSampleRate, samplesPerBlock);
-	//		break;
-	//	case MainComponent::limiter:
-	//		return;
-	//	default:
-	//		return;
-	//	}
-
-	//	readerSource->prepareToPlay(samplesPerBlockExpected, sampleRate);
-	//}
+	ebuLoudnessMeter->reset();
+	ebuLoudnessMeter->prepareToPlay(fileSampleRate, 2, samplesPerBlock, 20);
+	transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
+	readerSource->prepareToPlay(samplesPerBlockExpected, sampleRate);
+	transportSource.start();
 }
 void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
-	//if (readerSource.get() == nullptr)
-	//{
-	//	bufferToFill.clearActiveBufferRegion();
-	//	return;
-	//}
-	//	
-	//readerSource->getNextAudioBlock(bufferToFill);
-	//fileGetNextReadPosition = readerSource->getNextReadPosition();
-	//updateProgressPercentage();
+	if (readerSource.get() == nullptr || transportSource.isPlaying() == false)
+	{
+		bufferToFill.clearActiveBufferRegion();
+		return;
+	}
+		
+	transportSource.getNextAudioBlock(bufferToFill);
+	fileGetNextReadPosition = readerSource->getNextReadPosition();
+	updateProgressPercentage();
 
-	//auto* inBuffer = bufferToFill.buffer->getArrayOfReadPointers();
-	//AudioSampleBuffer sBuffer;
-	//sBuffer.setDataToReferTo((float**)inBuffer, bufferToFill.buffer->getNumChannels(), bufferToFill.numSamples);
-	//	
-	//switch (passID)
-	//{
-	//	case MainComponent::ebuLoudness:
-	//		ebuLoudnessMeter->processBlock(sBuffer);
-	//		break;
-	//	case MainComponent::gain:
-	//		break;
-	//	case MainComponent::limiter:
-	//		break;
-	//	default:
-	//		break;
-	//}
-	//	
-	//if (fileGetNextReadPosition >= fileTotalLength)
-	//{
-	//	switch (passID)
-	//	{
-	//	case MainComponent::ebuLoudness:
-	//		fileDbLufs = ebuLoudnessMeter->getIntegratedLoudness();
-
-	//		// Initiate the second pass
-	//		passID = PassID::gain;
-	//		prepareToPlay((int)((double)fileSampleRate / (double)100), fileSampleRate);
-	//		break;
-	//	case MainComponent::gain:
-	//		leftPanel.setEnabled(true);
-	//		mainPanel.setEnabled(true);
-	//		break;
-	//	case MainComponent::limiter:
-	//		break;
-	//	default:
-	//		break;
-	//	}
-	//}
+	auto* inBuffer = bufferToFill.buffer->getArrayOfReadPointers();
+	AudioSampleBuffer sBuffer;
+	sBuffer.setDataToReferTo((float**)inBuffer, bufferToFill.buffer->getNumChannels(), bufferToFill.numSamples);
+	ebuLoudnessMeter->processBlock(sBuffer);
+	
+	if(transportSource.isPlaying() == false)
+	//if(readerSource->getNextReadPosition() >= readerSource->getTotalLength())
+	{
+		runPostProcess();
+		releaseResources();
+	}
 }
 void MainComponent::releaseResources()
 {
+	transportSource.releaseResources();
+	readerSource->releaseResources();
 }
+void MainComponent::runPostProcess()
+{
+	float fileDbLufs = ebuLoudnessMeter->getIntegratedLoudness();
+	float gainDB = ((fileDbLufs * -1) - (dBLufsTarget * -1));
+	float gainFactor = Decibels::decibelsToGain(gainDB);
 
+	AudioSampleBuffer gainBuffer(2, fileTotalLength);
+	AudioFormatReader* fmtReader = readerSource->getAudioFormatReader();
+	fmtReader->read(&gainBuffer, 0, fileTotalLength, 0, true, true);
+	gainBuffer.applyGain(gainFactor);
 
+	File wavFile = destinationFolder.getChildFile(activeFile.getFileName());
+	wavFile.deleteFile();
+
+	FileOutputStream* fos = new FileOutputStream(wavFile);
+	WavAudioFormat wavFormat;
+	ScopedPointer<AudioFormatWriter> afw(wavFormat.createWriterFor(fos, fileSampleRate, gainBuffer.getNumChannels(), bitsPerSample, StringPairArray(), 0));
+	afw->writeFromAudioSampleBuffer(gainBuffer, 0, gainBuffer.getNumSamples());
+}
+void MainComponent::changeListenerCallback(ChangeBroadcaster* source)
+{
+	if (source == &transportSource)
+	{
+		//transportSourceChanged();
+	}
+}
+void MainComponent::transportSourceChanged()
+{
+	if (transportSource.isPlaying())
+	{
+		//transportStateChanged(Playing);
+	}
+	else
+	{
+		//transportStateChanged(Stopped);
+	}
+}
+void MainComponent::transportStateChanged(TransportState newState)
+{
+	if (state != newState)
+	{
+		state = newState;
+		switch (state)
+		{
+		case Stopped:
+			//screen->stopButton.setEnabled(false);
+			//screen->pauseButton.setEnabled(false);
+			//screen->playButton.setEnabled(true);
+			//transportSource.setPosition(0.0);
+			break;
+		case Starting:
+			//screen->playButton.setEnabled(false);
+			//transportSource.start();
+			break;
+		case Playing:
+			//screen->stopButton.setEnabled(true);
+			//screen->pauseButton.setEnabled(true);
+			break;
+		case Stopping:
+			//transportSource.stop();
+			break;
+		case Paused:
+			//screen->stopButton.setEnabled(false);
+			//screen->pauseButton.setEnabled(false);
+			//screen->playButton.setEnabled(true);
+			break;
+		case Pausing:
+			//transportSource.stop();
+			//isPaused = true;
+			break;
+		default:
+			jassertfalse;
+			break;
+		}
+	}
+}
 #pragma endregion
 
 
@@ -274,31 +284,31 @@ bool MainComponent::validateProcessorParameters()
 		dlg.runModalLoop();
 		return false;
 	}
-	//if (leftPanel.lblDestFolder.getText() == leftPanel.tagNoDestinationFolder)
-	//{
-	//	AlertWindow dlg("Parameter Error", "No Output Folder", AlertWindow::AlertIconType::WarningIcon);
-	//	dlg.addButton("OK", 1);
-	//	dlg.setUsingNativeTitleBar(true);
-	//	dlg.runModalLoop();
-	//	return false;
-	//}
-	//if (destinationFolder == inputFolder)
-	//{
-	//	AlertWindow dlg("Parameter Error", "Input and Output folders are the same", AlertWindow::AlertIconType::WarningIcon);
-	//	dlg.addButton("OK", 1);
-	//	dlg.setUsingNativeTitleBar(true);
-	//	dlg.runModalLoop();
-	//	return false;
-	//}
+	if (leftPanel.lblDestFolder.getText() == leftPanel.tagNoDestinationFolder)
+	{
+		AlertWindow dlg("Parameter Error", "No Output Folder", AlertWindow::AlertIconType::WarningIcon);
+		dlg.addButton("OK", 1);
+		dlg.setUsingNativeTitleBar(true);
+		dlg.runModalLoop();
+		return false;
+	}
+	if (destinationFolder == inputFolder)
+	{
+		AlertWindow dlg("Parameter Error", "Input and Output folders are the same", AlertWindow::AlertIconType::WarningIcon);
+		dlg.addButton("OK", 1);
+		dlg.setUsingNativeTitleBar(true);
+		dlg.runModalLoop();
+		return false;
+	}
 	return true;
 }
-//void MainComponent::updateProgressPercentage()
-//{
-//	double percent = 0;
-//	if (fileTotalLength > 0)
-//	{
-//		percent = ((double)fileGetNextReadPosition / (double)fileTotalLength);
-//	}
-//	mainPanel.progressValue = percent;
-//}
+void MainComponent::updateProgressPercentage()
+{
+	double percent = 0;
+	if (fileTotalLength > 0)
+	{
+		percent = ((double)fileGetNextReadPosition / (double)fileTotalLength);
+	}
+	mainPanel.progressValue = percent;
+}
 #pragma endregion

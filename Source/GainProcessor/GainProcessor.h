@@ -91,9 +91,12 @@ class GainProcessor  : public ProcessorBase
 public:
     GainProcessor()
     {
-        gain.setGainDecibels (-6.0f);
-    }
-    
+		setGainDecibels(0.0f);
+	}
+	void setGainDecibels(float db)
+	{
+		gain.setGainDecibels(db);
+	}
     void prepareToPlay (double sampleRate, int samplesPerBlock) override
     {
         dsp::ProcessSpec spec { sampleRate, static_cast<uint32> (samplesPerBlock), 2 };

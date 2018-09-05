@@ -11,22 +11,19 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "./View/Screen.h"
 #include "./View/FileListBoxModel.h"
-//#include "./LoudnessProcessor/Ebu128LoudnessMeter.h"
-//#include "./GainProcessor/GainProcessor.h"
-#include "LoudnessTaskThread.h"
+#include "./LoudnessProcessor/Ebu128LoudnessMeter.h"
+#include "./LoudnessTaskThread.h"
 
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class MainComponent : public AudioAppComponent, public ListBoxModelListener
+class MainComponent : public AudioAppComponent, public ListBoxModelListener, public ChangeListener
 {
 	public:
 		//==============================================================================
 		using Track = Grid::TrackInfo;
-		using AudioGraphIOProcessor = AudioProcessorGraph::AudioGraphIOProcessor;
-		using Node = AudioProcessorGraph::Node;
 
 		//==============================================================================
 		MainComponent();
@@ -58,46 +55,50 @@ class MainComponent : public AudioAppComponent, public ListBoxModelListener
 		void addFilesButtonClicked();
 		void destinationFolderButtonClicked();
 		void runProcessButtonClicked();
-		//void updateProgressPercentage();
+		void updateProgressPercentage();
 #pragma endregion
 
 #pragma region Process Parameters
-		//enum PassID
-		//{
-		//	ebuLoudness = 0,
-		//	gain = 1,
-		//	limiter = 2,
-		//};
-
 		Array<File> inputFiles;
 		Array<File> outputFiles;
 		int activeIndex;
-
-		//float dBLufsTarget;
-		//float dBLimiterCeiling;
-		//double fileSampleRate;
-		//double bitsPerSample;
-		//int64 fileTotalLength;
-		//int64 fileGetNextReadPosition;
-		//float fileDbLufs;
-		//PassID passID;
+		File activeFile;
+		float dBLufsTarget;
+		float dBLimiterCeiling;
+		double fileSampleRate;
+		double bitsPerSample;
+		int64 fileTotalLength;
+		int64 fileGetNextReadPosition;
 
 		void runProcess();
+		void runPostProcess();
 
 		bool validateProcessorParameters();
-		//bool loadFileFromDisk(File srcFile);
+		bool loadFileFromDisk(File srcFile);
+		void WriteBufferToFile(AudioSampleBuffer* gainBuffer);
+
 #pragma endregion
 
 #pragma region Audio Processor Rack
-		//AudioFormatManager formatManager;
-		//std::unique_ptr<AudioFormatReaderSource> readerSource;
-		//std::unique_ptr<MemoryAudioSource> memorySource;
+		AudioFormatManager formatManager;
+		std::unique_ptr<AudioFormatReaderSource> readerSource;
+		AudioTransportSource transportSource;
+		enum TransportState
+		{
+			Stopped,
+			Starting,
+			Playing,
+			Stopping,
+			Paused,
+			Pausing,
+		};
+		TransportState state;
 
-		//std::unique_ptr<Ebu128LoudnessMeter> ebuLoudnessMeter;
-		//std::unique_ptr<GainProcessor> gainProcessor;
-		//std::unique_ptr<FilterProcessor> filterProcessor;
+		std::unique_ptr<Ebu128LoudnessMeter> ebuLoudnessMeter;
 
-		//void CreateMemoryAudioSource();
+		void changeListenerCallback(ChangeBroadcaster* source);
+		void transportSourceChanged();
+		void transportStateChanged(TransportState newState);
 #pragma endregion
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
