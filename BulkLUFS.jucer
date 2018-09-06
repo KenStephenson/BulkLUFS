@@ -4,10 +4,15 @@
               bundleIdentifier="com.namesoft.BulkLUFS">
   <MAINGROUP id="njZJjI" name="BulkLUFS">
     <GROUP id="{01FF0F1F-8943-8B3A-FD46-D36D2D07B328}" name="Source">
-      <FILE id="Dp8PEz" name="LoudnessTaskThread.cpp" compile="1" resource="0"
-            file="Source/LoudnessTaskThread.cpp"/>
-      <FILE id="F5Ml8E" name="LoudnessTaskThread.h" compile="0" resource="0"
-            file="Source/LoudnessTaskThread.h"/>
+      <GROUP id="{C00912B1-68CC-F746-499F-D5CBD291DBB7}" name="BrickwallLimiter">
+        <FILE id="atMuxC" name="GainDynamics.cpp" compile="1" resource="0"
+              file="Source/BrickwallLimiter/GainDynamics.cpp"/>
+        <FILE id="GpyjN0" name="GainDynamics.h" compile="0" resource="0" file="Source/BrickwallLimiter/GainDynamics.h"/>
+        <FILE id="aULN4T" name="PeakLevelDetector.cpp" compile="1" resource="0"
+              file="Source/BrickwallLimiter/PeakLevelDetector.cpp"/>
+        <FILE id="nHLnXT" name="PeakLevelDetector.h" compile="0" resource="0"
+              file="Source/BrickwallLimiter/PeakLevelDetector.h"/>
+      </GROUP>
       <GROUP id="{654DB378-FD33-255D-BCC7-A9B5F37776AB}" name="LoudnessProcessor">
         <GROUP id="{D17FE4F2-FC57-29FF-A74F-C0E24B0C14F3}" name="filters">
           <FILE id="K5R3C1" name="SecondOrderIIRFilter.cpp" compile="1" resource="0"
@@ -21,9 +26,6 @@
               file="Source/LoudnessProcessor/Ebu128LoudnessMeter.h"/>
         <FILE id="RJLQuH" name="MacrosAndJuceHeaders.h" compile="0" resource="0"
               file="Source/LoudnessProcessor/MacrosAndJuceHeaders.h"/>
-      </GROUP>
-      <GROUP id="{4921251D-13FA-2816-223C-67B701893DF5}" name="GainProcessor">
-        <FILE id="F7xVR5" name="GainProcessor.h" compile="0" resource="0" file="Source/GainProcessor/GainProcessor.h"/>
       </GROUP>
       <GROUP id="{CF1EAD79-1B62-FCFD-6EBA-831CED15C230}" name="View">
         <FILE id="Kb2p5J" name="FileListBoxModel.h" compile="0" resource="0"

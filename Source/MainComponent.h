@@ -13,13 +13,15 @@
 #include "./View/FileListBoxModel.h"
 #include "./LoudnessProcessor/Ebu128LoudnessMeter.h"
 #include "./LoudnessTaskThread.h"
+#include "./BrickwallLimiter/PeakLevelDetector.h"
+#include "./BrickwallLimiter/GainDynamics.h"
 
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class MainComponent : public AudioAppComponent, public ListBoxModelListener, public ChangeListener
+class MainComponent : public AudioAppComponent, public ListBoxModelListener
 {
 	public:
 		//==============================================================================
@@ -72,10 +74,12 @@ class MainComponent : public AudioAppComponent, public ListBoxModelListener, pub
 
 		void runProcess();
 		void runPostProcess();
+		void applyGain(AudioSampleBuffer* audioBuffer);
+		void applyBrickwallLimiter(AudioSampleBuffer* audioBuffer);
+		void writeOutputFile(AudioSampleBuffer* audioBuffer);
 
 		bool validateProcessorParameters();
 		bool loadFileFromDisk(File srcFile);
-		void WriteBufferToFile(AudioSampleBuffer* gainBuffer);
 
 #pragma endregion
 
@@ -95,10 +99,17 @@ class MainComponent : public AudioAppComponent, public ListBoxModelListener, pub
 		TransportState state;
 
 		std::unique_ptr<Ebu128LoudnessMeter> ebuLoudnessMeter;
+		ScopedPointer<PeakLevelDetector> leftLevelDetector, rightLevelDetector;
+		ScopedPointer<GainDynamics> gainDymanics;
 
-		void changeListenerCallback(ChangeBroadcaster* source);
-		void transportSourceChanged();
-		void transportStateChanged(TransportState newState);
+		float thresholdDb = 1.0f;
+		float aRatio = 10.0f;
+		float attackTime = 0.005f;
+		float releaseTime = 0.25f;
+
+		float peakOutL, peakOutR, peakSum, peakSumDb;
+		float gain, gainDb;
+
 #pragma endregion
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)

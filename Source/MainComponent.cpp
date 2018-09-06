@@ -14,9 +14,7 @@ MainComponent::MainComponent()
 	initialiseUserInterface();
 
 	ebuLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
-
 	setAudioChannels (2, 2);
-
 	formatManager.registerBasicFormats();
 
 	setSize(600, 600);
@@ -59,7 +57,6 @@ bool MainComponent::loadFileFromDisk(File srcFile)
 		transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
 		readerSource.reset(newSource.release());
 		readerSource->setLooping(false);
-		transportSource.addChangeListener(this);
 
 		fileTotalLength = readerSource->getTotalLength();
 		fileSampleRate = reader->sampleRate;
@@ -70,14 +67,10 @@ bool MainComponent::loadFileFromDisk(File srcFile)
 	bitsPerSample = 0;
 	return false;
 }
-void MainComponent::WriteBufferToFile(AudioSampleBuffer* gainBuffer)
-{
 
-}
 #pragma endregion
 
 #pragma region Audio Processing
-
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
 {
 	if (readerSource.get() == nullptr)
@@ -89,6 +82,26 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 	mainPanel.progressValue = 0;
 	fileGetNextReadPosition = 0;
 	int samplesPerBlock = (int)((double)fileSampleRate / (double)100);
+
+	if (leftLevelDetector == nullptr && rightLevelDetector == nullptr)
+	{
+		leftLevelDetector = new PeakLevelDetector(fileSampleRate);
+		rightLevelDetector = new PeakLevelDetector(fileSampleRate);
+	}
+	else
+	{
+		leftLevelDetector->setDetector(fileSampleRate);
+		rightLevelDetector->setDetector(fileSampleRate);
+	}
+
+	if (gainDymanics == nullptr) 
+	{
+		gainDymanics = new GainDynamics(sampleRate, attackTime, releaseTime);
+	}
+	else 
+	{
+		gainDymanics->setDetector(sampleRate);
+	}
 
 	ebuLoudnessMeter->reset();
 	ebuLoudnessMeter->prepareToPlay(fileSampleRate, 2, samplesPerBlock, 20);
@@ -114,7 +127,6 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 	ebuLoudnessMeter->processBlock(sBuffer);
 	
 	if(transportSource.isPlaying() == false)
-	//if(readerSource->getNextReadPosition() >= readerSource->getTotalLength())
 	{
 		runPostProcess();
 		releaseResources();
@@ -123,84 +135,77 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 void MainComponent::releaseResources()
 {
 	transportSource.releaseResources();
-	readerSource->releaseResources();
 }
 void MainComponent::runPostProcess()
 {
+	std::unique_ptr<AudioSampleBuffer> audioBuffer = std::make_unique<AudioSampleBuffer>(2, fileTotalLength);
+	applyGain(audioBuffer.get());
+	applyBrickwallLimiter(audioBuffer.get());
+	writeOutputFile(audioBuffer.get());
+}
+
+void MainComponent::applyGain(AudioSampleBuffer* audioBuffer)
+{
 	float fileDbLufs = ebuLoudnessMeter->getIntegratedLoudness();
-	float gainDB = ((fileDbLufs * -1) - (dBLufsTarget * -1));
-	float gainFactor = Decibels::decibelsToGain(gainDB);
+	float dbDifference = (fileDbLufs * -1) - (dBLufsTarget * -1);
+	float gainFactor = Decibels::decibelsToGain(dbDifference);
 
-	AudioSampleBuffer gainBuffer(2, fileTotalLength);
 	AudioFormatReader* fmtReader = readerSource->getAudioFormatReader();
-	fmtReader->read(&gainBuffer, 0, fileTotalLength, 0, true, true);
-	gainBuffer.applyGain(gainFactor);
+	fmtReader->read(audioBuffer, 0, fileTotalLength, 0, true, true);
+	audioBuffer->applyGain(gainFactor);
+}
 
+
+#define dB(x) 20.0 * ((x) > 0.00001 ? log10(x) : -5.0)
+#define dB2mag(x) pow(10.0, (x) / 20.0)
+void MainComponent::applyBrickwallLimiter(AudioSampleBuffer* audioBuffer)
+{
+	float* leftChannelData = audioBuffer->getWritePointer(0);
+	float* rightChannelData = audioBuffer->getWritePointer(1);
+	for (int i = 0; i < audioBuffer->getNumSamples(); i++)
+	{
+		// Peak detector
+		peakOutL = leftLevelDetector->tick(leftChannelData[i]);
+		peakOutR = rightLevelDetector->tick(rightChannelData[i]);
+		peakSum = (peakOutL + peakOutR) * 0.5f;
+
+		// Convert to db
+		peakSumDb = dB(peakSum);
+
+		// Calculate gain
+		if (peakSumDb < thresholdDb)
+		{
+			gainDb = 0.f;
+		}
+		else
+		{
+			gainDb = -(peakSumDb - thresholdDb) *(1.f - 1.f / aRatio);
+			//gainDb = -thresholdDb;
+		}
+
+		// Gain dynamics (attack and release)
+		gainDb = gainDymanics->tick(gainDb);
+
+		// Convert to Linear
+		gain = dB2mag(gainDb);
+
+		// Apply gain
+		leftChannelData[i] *= gain;
+		rightChannelData[i] *= gain;
+	}
+}
+
+void MainComponent::writeOutputFile(AudioSampleBuffer* audioBuffer)
+{
 	File wavFile = destinationFolder.getChildFile(activeFile.getFileName());
 	wavFile.deleteFile();
 
 	FileOutputStream* fos = new FileOutputStream(wavFile);
 	WavAudioFormat wavFormat;
-	ScopedPointer<AudioFormatWriter> afw(wavFormat.createWriterFor(fos, fileSampleRate, gainBuffer.getNumChannels(), bitsPerSample, StringPairArray(), 0));
-	afw->writeFromAudioSampleBuffer(gainBuffer, 0, gainBuffer.getNumSamples());
+	ScopedPointer<AudioFormatWriter> afw(wavFormat.createWriterFor(fos, fileSampleRate, audioBuffer->getNumChannels(), bitsPerSample, StringPairArray(), 0));
+	afw->writeFromAudioSampleBuffer(*audioBuffer, 0, audioBuffer->getNumSamples());
 }
-void MainComponent::changeListenerCallback(ChangeBroadcaster* source)
-{
-	if (source == &transportSource)
-	{
-		//transportSourceChanged();
-	}
-}
-void MainComponent::transportSourceChanged()
-{
-	if (transportSource.isPlaying())
-	{
-		//transportStateChanged(Playing);
-	}
-	else
-	{
-		//transportStateChanged(Stopped);
-	}
-}
-void MainComponent::transportStateChanged(TransportState newState)
-{
-	if (state != newState)
-	{
-		state = newState;
-		switch (state)
-		{
-		case Stopped:
-			//screen->stopButton.setEnabled(false);
-			//screen->pauseButton.setEnabled(false);
-			//screen->playButton.setEnabled(true);
-			//transportSource.setPosition(0.0);
-			break;
-		case Starting:
-			//screen->playButton.setEnabled(false);
-			//transportSource.start();
-			break;
-		case Playing:
-			//screen->stopButton.setEnabled(true);
-			//screen->pauseButton.setEnabled(true);
-			break;
-		case Stopping:
-			//transportSource.stop();
-			break;
-		case Paused:
-			//screen->stopButton.setEnabled(false);
-			//screen->pauseButton.setEnabled(false);
-			//screen->playButton.setEnabled(true);
-			break;
-		case Pausing:
-			//transportSource.stop();
-			//isPaused = true;
-			break;
-		default:
-			jassertfalse;
-			break;
-		}
-	}
-}
+
 #pragma endregion
 
 

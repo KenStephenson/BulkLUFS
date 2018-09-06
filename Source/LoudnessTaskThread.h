@@ -10,7 +10,7 @@
 
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "./GainProcessor/GainProcessor.h"
+//#include "./GainProcessor/GainProcessor.h"
 
 class LoudnessTaskParameters
 {
@@ -42,7 +42,7 @@ class LoudnessTaskThread : public ThreadWithProgressWindow
 		std::unique_ptr<MemoryAudioSource> memorySource;
 		//std::unique_ptr<AudioFormatReaderSource> readerSource;
 
-		std::unique_ptr<GainProcessor> gainProcessor;
+		//std::unique_ptr<GainProcessor> gainProcessor;
 
 		bool taskIsActive = false;
 
