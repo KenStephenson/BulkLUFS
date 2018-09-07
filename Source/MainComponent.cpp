@@ -17,6 +17,8 @@ MainComponent::MainComponent()
 	setAudioChannels (2, 2);
 	formatManager.registerBasicFormats();
 
+	loadLimiterPlugin();
+
 	setSize(600, 600);
 }
 
@@ -83,25 +85,25 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 	fileGetNextReadPosition = 0;
 	int samplesPerBlock = (int)((double)fileSampleRate / (double)100);
 
-	if (leftLevelDetector == nullptr && rightLevelDetector == nullptr)
-	{
-		leftLevelDetector = new PeakLevelDetector(fileSampleRate);
-		rightLevelDetector = new PeakLevelDetector(fileSampleRate);
-	}
-	else
-	{
-		leftLevelDetector->setDetector(fileSampleRate);
-		rightLevelDetector->setDetector(fileSampleRate);
-	}
+	//if (leftLevelDetector == nullptr && rightLevelDetector == nullptr)
+	//{
+	//	leftLevelDetector = new PeakLevelDetector(fileSampleRate);
+	//	rightLevelDetector = new PeakLevelDetector(fileSampleRate);
+	//}
+	//else
+	//{
+	//	leftLevelDetector->setDetector(fileSampleRate);
+	//	rightLevelDetector->setDetector(fileSampleRate);
+	//}
 
-	if (gainDymanics == nullptr) 
-	{
-		gainDymanics = new GainDynamics(sampleRate, attackTime, releaseTime);
-	}
-	else 
-	{
-		gainDymanics->setDetector(sampleRate);
-	}
+	//if (gainDymanics == nullptr) 
+	//{
+	//	gainDymanics = new GainDynamics(sampleRate, attackTime, releaseTime);
+	//}
+	//else 
+	//{
+	//	gainDymanics->setDetector(sampleRate);
+	//}
 
 	ebuLoudnessMeter->reset();
 	ebuLoudnessMeter->prepareToPlay(fileSampleRate, 2, samplesPerBlock, 20);
@@ -140,7 +142,7 @@ void MainComponent::runPostProcess()
 {
 	std::unique_ptr<AudioSampleBuffer> audioBuffer = std::make_unique<AudioSampleBuffer>(2, fileTotalLength);
 	applyGain(audioBuffer.get());
-	applyBrickwallLimiter(audioBuffer.get());
+	//applyBrickwallLimiter(audioBuffer.get());
 	writeOutputFile(audioBuffer.get());
 }
 
@@ -154,7 +156,6 @@ void MainComponent::applyGain(AudioSampleBuffer* audioBuffer)
 	fmtReader->read(audioBuffer, 0, fileTotalLength, 0, true, true);
 	audioBuffer->applyGain(gainFactor);
 }
-
 
 #define dB(x) 20.0 * ((x) > 0.00001 ? log10(x) : -5.0)
 #define dB2mag(x) pow(10.0, (x) / 20.0)
@@ -179,8 +180,7 @@ void MainComponent::applyBrickwallLimiter(AudioSampleBuffer* audioBuffer)
 		}
 		else
 		{
-			gainDb = -(peakSumDb - thresholdDb) *(1.f - 1.f / aRatio);
-			//gainDb = -thresholdDb;
+			gainDb = -(peakSumDb - thresholdDb) * (1.f - 1.f / aRatio);
 		}
 
 		// Gain dynamics (attack and release)
@@ -204,6 +204,54 @@ void MainComponent::writeOutputFile(AudioSampleBuffer* audioBuffer)
 	WavAudioFormat wavFormat;
 	ScopedPointer<AudioFormatWriter> afw(wavFormat.createWriterFor(fos, fileSampleRate, audioBuffer->getNumChannels(), bitsPerSample, StringPairArray(), 0));
 	afw->writeFromAudioSampleBuffer(*audioBuffer, 0, audioBuffer->getNumSamples());
+}
+
+
+void MainComponent::loadLimiterPlugin()
+{
+	KnownPluginList knownPluginList;
+	std::unique_ptr<AudioPluginFormat> format = std::make_unique<VSTPluginFormat>();
+	FileSearchPath path = format->getDefaultLocationsToSearch();
+	
+	// Scan the directory for plugins
+	std::unique_ptr<PluginDirectoryScanner> scanner = std::make_unique<PluginDirectoryScanner>(knownPluginList, *format, path,	true, File::nonexistent, false);
+	String currentPlugBeingScanned;
+	while (scanner->scanNextFile(true, currentPlugBeingScanned)) {}
+
+	for (int i = 0; i < knownPluginList.getNumTypes(); i++)
+	{
+		PluginDescription* plugIn = knownPluginList.getType(i);
+		if (plugIn->name == limiterPluginName)
+		{
+			AudioPluginFormatManager fm;
+			fm.addDefaultFormats();
+
+			String ignore;
+			if (AudioPluginInstance* pluginInstance = fm.createPluginInstance(*plugIn, 44100.0, 512, ignore))
+			{
+				pluginInstance->setNonRealtime(true);
+				limiterPlugin = std::make_unique<PluginWrapperProcessor>(pluginInstance);
+				
+				int numParams = pluginInstance->getNumParameters();
+				for (int parameterIndex = 0; parameterIndex < numParams; parameterIndex++)
+				{
+					auto p = limiterPlugin.get()->getParameter(parameterIndex);
+					int bp = 0;
+
+					//String pName = limiterPlugin.get()->getParameterName(parameterIndex);
+					//	String pID = limiterPlugin.get()->getParameterID(parameterIndex);
+					//	float pIndex = limiterPlugin.get()->getParameter(parameterIndex);
+					//	String pText = limiterPlugin.get()->getParameterText(parameterIndex);
+					//	int pNumSteps = limiterPlugin.get()->getParameterNumSteps(parameterIndex);
+					//	float pDefVal = limiterPlugin.get()->getParameterDefaultValue(parameterIndex);
+					//	String pLabel = limiterPlugin.get()->getParameterLabel(parameterIndex);
+
+				}
+			}
+		}
+	}
+
+
 }
 
 #pragma endregion

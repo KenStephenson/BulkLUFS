@@ -4,6 +4,10 @@
               bundleIdentifier="com.namesoft.BulkLUFS">
   <MAINGROUP id="njZJjI" name="BulkLUFS">
     <GROUP id="{01FF0F1F-8943-8B3A-FD46-D36D2D07B328}" name="Source">
+      <GROUP id="{6E571852-C048-E01E-1C8E-0D79E3F65C7C}" name="VstHost">
+        <FILE id="XNEgDC" name="PluginWrapperProcessor.h" compile="0" resource="0"
+              file="Source/VstHost/PluginWrapperProcessor.h"/>
+      </GROUP>
       <GROUP id="{C00912B1-68CC-F746-499F-D5CBD291DBB7}" name="BrickwallLimiter">
         <FILE id="atMuxC" name="GainDynamics.cpp" compile="1" resource="0"
               file="Source/BrickwallLimiter/GainDynamics.cpp"/>
@@ -129,5 +133,5 @@
   <LIVE_SETTINGS>
     <WINDOWS/>
   </LIVE_SETTINGS>
-  <JUCEOPTIONS/>
+  <JUCEOPTIONS JUCE_PLUGINHOST_VST="1"/>
 </JUCERPROJECT>

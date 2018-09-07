@@ -15,6 +15,7 @@
 #include "./LoudnessTaskThread.h"
 #include "./BrickwallLimiter/PeakLevelDetector.h"
 #include "./BrickwallLimiter/GainDynamics.h"
+#include "./VstHost/PluginWrapperProcessor.h"
 
 //==============================================================================
 /*
@@ -99,13 +100,19 @@ class MainComponent : public AudioAppComponent, public ListBoxModelListener
 		TransportState state;
 
 		std::unique_ptr<Ebu128LoudnessMeter> ebuLoudnessMeter;
-		ScopedPointer<PeakLevelDetector> leftLevelDetector, rightLevelDetector;
-		ScopedPointer<GainDynamics> gainDymanics;
+
+
+		std::unique_ptr<AudioProcessor> limiterPlugin;
+		const String limiterPluginName = "SPAN";	// "George Yohng's W1 Limiter x64";
+		void loadLimiterPlugin();
+
 
 		float thresholdDb = 1.0f;
+		ScopedPointer<PeakLevelDetector> leftLevelDetector, rightLevelDetector;
+		ScopedPointer<GainDynamics> gainDymanics;
 		float aRatio = 10.0f;
-		float attackTime = 0.005f;
-		float releaseTime = 0.25f;
+		float attackTime = 0.010f;
+		float releaseTime = 0.50f;
 
 		float peakOutL, peakOutR, peakSum, peakSumDb;
 		float gain, gainDb;
