@@ -12,9 +12,6 @@
 #include "./View/Screen.h"
 #include "./View/FileListBoxModel.h"
 #include "./LoudnessProcessor/Ebu128LoudnessMeter.h"
-#include "./LoudnessTaskThread.h"
-#include "./BrickwallLimiter/PeakLevelDetector.h"
-#include "./BrickwallLimiter/GainDynamics.h"
 #include "./VstHost/PluginWrapperProcessor.h"
 
 //==============================================================================
@@ -100,23 +97,11 @@ class MainComponent : public AudioAppComponent, public ListBoxModelListener
 		TransportState state;
 
 		std::unique_ptr<Ebu128LoudnessMeter> ebuLoudnessMeter;
-
-
 		std::unique_ptr<AudioProcessor> limiterPlugin;
+
 		const String limiterPluginName = "George Yohng's W1 Limiter x64";
 		void loadLimiterPlugin();
-		const int vstBufferSize = 512;
 		MidiBuffer midiBuffer;
-
-		float thresholdDb = 1.0f;
-		ScopedPointer<PeakLevelDetector> leftLevelDetector, rightLevelDetector;
-		ScopedPointer<GainDynamics> gainDymanics;
-		float aRatio = 10.0f;
-		float attackTime = 0.010f;
-		float releaseTime = 0.50f;
-
-		float peakOutL, peakOutR, peakSum, peakSumDb;
-		float gain, gainDb;
 
 #pragma endregion
 

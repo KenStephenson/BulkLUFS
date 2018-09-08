@@ -209,51 +209,13 @@ void MainComponent::loadLimiterPlugin()
 			fm.addDefaultFormats();
 
 			String ignore;
-			if (AudioPluginInstance* pluginInstance = fm.createPluginInstance(*plugIn, 44100.0, vstBufferSize, ignore))
+			if (AudioPluginInstance* pluginInstance = fm.createPluginInstance(*plugIn, 44100.0, 512, ignore))
 			{
 				limiterPlugin = std::make_unique<PluginWrapperProcessor>(pluginInstance);
 			}
 		}
 	}
 }
-
-//#define dB(x) 20.0 * ((x) > 0.00001 ? log10(x) : -5.0)
-//#define dB2mag(x) pow(10.0, (x) / 20.0)
-//void MainComponent::applyBrickwallLimiter(AudioSampleBuffer* audioBuffer)
-//{
-//	float* leftChannelData = audioBuffer->getWritePointer(0);
-//	float* rightChannelData = audioBuffer->getWritePointer(1);
-//	for (int i = 0; i < audioBuffer->getNumSamples(); i++)
-//	{
-//		// Peak detector
-//		peakOutL = leftLevelDetector->tick(leftChannelData[i]);
-//		peakOutR = rightLevelDetector->tick(rightChannelData[i]);
-//		peakSum = (peakOutL + peakOutR) * 0.5f;
-//
-//		// Convert to db
-//		peakSumDb = dB(peakSum);
-//
-//		// Calculate gain
-//		if (peakSumDb < thresholdDb)
-//		{
-//			gainDb = 0.f;
-//		}
-//		else
-//		{
-//			gainDb = -(peakSumDb - thresholdDb) * (1.f - 1.f / aRatio);
-//		}
-//
-//		// Gain dynamics (attack and release)
-//		gainDb = gainDymanics->tick(gainDb);
-//
-//		// Convert to Linear
-//		gain = dB2mag(gainDb);
-//
-//		// Apply gain
-//		leftChannelData[i] *= gain;
-//		rightChannelData[i] *= gain;
-//	}
-//}
 
 #pragma endregion
 
