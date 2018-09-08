@@ -19,6 +19,10 @@
               file="Source/LoudnessProcessor/Ebu128LoudnessMeter.cpp"/>
         <FILE id="Dvqx6l" name="Ebu128LoudnessMeter.h" compile="0" resource="0"
               file="Source/LoudnessProcessor/Ebu128LoudnessMeter.h"/>
+        <FILE id="TfJujw" name="LUFSMeterAudioProcessor.cpp" compile="1" resource="0"
+              file="Source/LoudnessProcessor/LUFSMeterAudioProcessor.cpp"/>
+        <FILE id="oj3Bzn" name="LUFSMeterAudioProcessor.h" compile="0" resource="0"
+              file="Source/LoudnessProcessor/LUFSMeterAudioProcessor.h"/>
         <FILE id="RJLQuH" name="MacrosAndJuceHeaders.h" compile="0" resource="0"
               file="Source/LoudnessProcessor/MacrosAndJuceHeaders.h"/>
       </GROUP>

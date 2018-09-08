@@ -14,6 +14,8 @@ MainComponent::MainComponent()
 	initialiseUserInterface();
 
 	ebuLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
+	ebuLoudnessMeter.get()->setNonRealtime(true);
+
 	setAudioChannels (2, 2);
 	formatManager.registerBasicFormats();
 
@@ -69,7 +71,6 @@ bool MainComponent::loadFileFromDisk(File srcFile)
 	bitsPerSample = 0;
 	return false;
 }
-
 #pragma endregion
 
 #pragma region Audio Processing
@@ -84,26 +85,6 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 	mainPanel.progressValue = 0;
 	fileGetNextReadPosition = 0;
 	int samplesPerBlock = (int)((double)fileSampleRate / (double)100);
-
-	//if (leftLevelDetector == nullptr && rightLevelDetector == nullptr)
-	//{
-	//	leftLevelDetector = new PeakLevelDetector(fileSampleRate);
-	//	rightLevelDetector = new PeakLevelDetector(fileSampleRate);
-	//}
-	//else
-	//{
-	//	leftLevelDetector->setDetector(fileSampleRate);
-	//	rightLevelDetector->setDetector(fileSampleRate);
-	//}
-
-	//if (gainDymanics == nullptr) 
-	//{
-	//	gainDymanics = new GainDynamics(sampleRate, attackTime, releaseTime);
-	//}
-	//else 
-	//{
-	//	gainDymanics->setDetector(sampleRate);
-	//}
 
 	ebuLoudnessMeter->reset();
 	ebuLoudnessMeter->prepareToPlay(fileSampleRate, 2, samplesPerBlock, 20);

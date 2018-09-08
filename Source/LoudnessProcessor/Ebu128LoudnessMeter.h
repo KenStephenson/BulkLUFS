@@ -69,7 +69,7 @@ public:
     ~Ebu128LoudnessMeter();
     
     // --------- AudioProcessor methods ---------
-//    const String getName ();
+	//    const String getName ();
     
     /**
      @param sampleRate
