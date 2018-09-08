@@ -11,7 +11,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "./View/Screen.h"
 #include "./View/FileListBoxModel.h"
-#include "./LoudnessProcessor/Ebu128LoudnessMeter.h"
+#include "./LoudnessProcessor/LUFSMeterAudioProcessor.h"
 #include "./VstHost/PluginWrapperProcessor.h"
 
 //==============================================================================
@@ -96,7 +96,7 @@ class MainComponent : public AudioAppComponent, public ListBoxModelListener
 		};
 		TransportState state;
 
-		std::unique_ptr<Ebu128LoudnessMeter> ebuLoudnessMeter;
+		std::unique_ptr<LUFSMeterAudioProcessor> ebuLoudnessMeter;
 		std::unique_ptr<AudioProcessor> limiterPlugin;
 
 		const String limiterPluginName = "George Yohng's W1 Limiter x64";

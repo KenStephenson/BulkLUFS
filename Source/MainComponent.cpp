@@ -13,7 +13,7 @@ MainComponent::MainComponent()
 {
 	initialiseUserInterface();
 
-	ebuLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
+	ebuLoudnessMeter = std::make_unique<LUFSMeterAudioProcessor>();
 	ebuLoudnessMeter.get()->setNonRealtime(true);
 
 	setAudioChannels (2, 2);
@@ -84,10 +84,10 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 	mainPanel.setEnabled(false);
 	mainPanel.progressValue = 0;
 	fileGetNextReadPosition = 0;
-	int samplesPerBlock = (int)((double)fileSampleRate / (double)100);
+	int samplesPerBlock = (int)((double)sampleRate / (double)100);
 
 	ebuLoudnessMeter->reset();
-	ebuLoudnessMeter->prepareToPlay(fileSampleRate, 2, samplesPerBlock, 20);
+	ebuLoudnessMeter->prepareToPlay(sampleRate, samplesPerBlock);
 	transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
 	readerSource->prepareToPlay(samplesPerBlockExpected, sampleRate);
 	transportSource.start();
@@ -107,7 +107,7 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 	auto* inBuffer = bufferToFill.buffer->getArrayOfReadPointers();
 	AudioSampleBuffer sBuffer;
 	sBuffer.setDataToReferTo((float**)inBuffer, bufferToFill.buffer->getNumChannels(), bufferToFill.numSamples);
-	ebuLoudnessMeter->processBlock(sBuffer);
+	ebuLoudnessMeter->processBlock(sBuffer, midiBuffer);
 	
 	if(transportSource.isPlaying() == false)
 	{

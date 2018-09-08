@@ -57,7 +57,7 @@ LUFSMeterAudioProcessor::~LUFSMeterAudioProcessor()
 //==============================================================================
 const String LUFSMeterAudioProcessor::getName() const
 {
-    return JucePlugin_Name;
+    return "LUFS Meter";
 }
 
 int LUFSMeterAudioProcessor::getNumParameters()
@@ -292,7 +292,13 @@ float LUFSMeterAudioProcessor::getShortTermLoudness()
 
 const Array<float>& LUFSMeterAudioProcessor::getMomentaryLoudnessForIndividualChannels()
 {
-    return ebu128LoudnessMeter.getMomentaryLoudnessForIndividualChannels();
+	vector<float> rawVector = ebu128LoudnessMeter.getMomentaryLoudnessForIndividualChannels();
+	Array<float> outArray;
+	for (int i = 0; i < rawVector.size(); i++)
+	{
+		outArray.add(rawVector[i]);
+	}
+	return outArray;
 }
 
 float LUFSMeterAudioProcessor::getMomentaryLoudness()
