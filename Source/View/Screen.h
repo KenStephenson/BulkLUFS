@@ -163,7 +163,7 @@ class ControlsPanel : public Component
 
 			sldLimiterCeiling.setRange(-3.0f, 0.0f);
 			sldLimiterCeiling.setValue(-1.0f);
-			sldLimiterCeiling.setTextValueSuffix(" dB");
+			sldLimiterCeiling.setTextValueSuffix(" dBFS");
 			sldLimiterCeiling.setNumDecimalPlacesToDisplay(1);
 			sldLimiterCeiling.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, true, 120, 20);
 			sldLimiterCeiling.setColour(Slider::textBoxTextColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));

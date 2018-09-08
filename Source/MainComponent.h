@@ -103,9 +103,10 @@ class MainComponent : public AudioAppComponent, public ListBoxModelListener
 
 
 		std::unique_ptr<AudioProcessor> limiterPlugin;
-		const String limiterPluginName = "SPAN";	// "George Yohng's W1 Limiter x64";
+		const String limiterPluginName = "George Yohng's W1 Limiter x64";
 		void loadLimiterPlugin();
-
+		const int vstBufferSize = 512;
+		MidiBuffer midiBuffer;
 
 		float thresholdDb = 1.0f;
 		ScopedPointer<PeakLevelDetector> leftLevelDetector, rightLevelDetector;

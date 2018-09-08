@@ -142,7 +142,7 @@ void MainComponent::runPostProcess()
 {
 	std::unique_ptr<AudioSampleBuffer> audioBuffer = std::make_unique<AudioSampleBuffer>(2, fileTotalLength);
 	applyGain(audioBuffer.get());
-	//applyBrickwallLimiter(audioBuffer.get());
+	applyBrickwallLimiter(audioBuffer.get());
 	writeOutputFile(audioBuffer.get());
 }
 
@@ -156,43 +156,26 @@ void MainComponent::applyGain(AudioSampleBuffer* audioBuffer)
 	fmtReader->read(audioBuffer, 0, fileTotalLength, 0, true, true);
 	audioBuffer->applyGain(gainFactor);
 }
-
-#define dB(x) 20.0 * ((x) > 0.00001 ? log10(x) : -5.0)
-#define dB2mag(x) pow(10.0, (x) / 20.0)
 void MainComponent::applyBrickwallLimiter(AudioSampleBuffer* audioBuffer)
 {
-	float* leftChannelData = audioBuffer->getWritePointer(0);
-	float* rightChannelData = audioBuffer->getWritePointer(1);
-	for (int i = 0; i < audioBuffer->getNumSamples(); i++)
-	{
-		// Peak detector
-		peakOutL = leftLevelDetector->tick(leftChannelData[i]);
-		peakOutR = rightLevelDetector->tick(rightChannelData[i]);
-		peakSum = (peakOutL + peakOutR) * 0.5f;
+	int numSamples = audioBuffer->getNumSamples();
+	float initialCeiling = dBLimiterCeiling;
+	float initialMax = audioBuffer->getMagnitude(0, numSamples);
+	
+	float db_1 = Decibels::decibelsToGain(-1.0f);
+	float dbFS = Decibels::decibelsToGain(initialCeiling);
 
-		// Convert to db
-		peakSumDb = dB(peakSum);
+	limiterPlugin->setNonRealtime(true);
+	limiterPlugin->setParameter(0, dbFS);	// Threshold
+	limiterPlugin->setParameter(1, dbFS);	// Ceiling
+	limiterPlugin->setParameter(2, 200.0f);	// Release
+	limiterPlugin->setParameter(3, false);	// Auto Release
 
-		// Calculate gain
-		if (peakSumDb < thresholdDb)
-		{
-			gainDb = 0.f;
-		}
-		else
-		{
-			gainDb = -(peakSumDb - thresholdDb) * (1.f - 1.f / aRatio);
-		}
+	limiterPlugin->prepareToPlay(fileSampleRate, numSamples);
+	limiterPlugin.get()->processBlock(*audioBuffer, midiBuffer);
+	
+	float max = audioBuffer->getMagnitude(0, numSamples);
 
-		// Gain dynamics (attack and release)
-		gainDb = gainDymanics->tick(gainDb);
-
-		// Convert to Linear
-		gain = dB2mag(gainDb);
-
-		// Apply gain
-		leftChannelData[i] *= gain;
-		rightChannelData[i] *= gain;
-	}
 }
 
 void MainComponent::writeOutputFile(AudioSampleBuffer* audioBuffer)
@@ -205,7 +188,6 @@ void MainComponent::writeOutputFile(AudioSampleBuffer* audioBuffer)
 	ScopedPointer<AudioFormatWriter> afw(wavFormat.createWriterFor(fos, fileSampleRate, audioBuffer->getNumChannels(), bitsPerSample, StringPairArray(), 0));
 	afw->writeFromAudioSampleBuffer(*audioBuffer, 0, audioBuffer->getNumSamples());
 }
-
 
 void MainComponent::loadLimiterPlugin()
 {
@@ -227,32 +209,51 @@ void MainComponent::loadLimiterPlugin()
 			fm.addDefaultFormats();
 
 			String ignore;
-			if (AudioPluginInstance* pluginInstance = fm.createPluginInstance(*plugIn, 44100.0, 512, ignore))
+			if (AudioPluginInstance* pluginInstance = fm.createPluginInstance(*plugIn, 44100.0, vstBufferSize, ignore))
 			{
-				pluginInstance->setNonRealtime(true);
 				limiterPlugin = std::make_unique<PluginWrapperProcessor>(pluginInstance);
-				
-				int numParams = pluginInstance->getNumParameters();
-				for (int parameterIndex = 0; parameterIndex < numParams; parameterIndex++)
-				{
-					auto p = limiterPlugin.get()->getParameter(parameterIndex);
-					int bp = 0;
-
-					//String pName = limiterPlugin.get()->getParameterName(parameterIndex);
-					//	String pID = limiterPlugin.get()->getParameterID(parameterIndex);
-					//	float pIndex = limiterPlugin.get()->getParameter(parameterIndex);
-					//	String pText = limiterPlugin.get()->getParameterText(parameterIndex);
-					//	int pNumSteps = limiterPlugin.get()->getParameterNumSteps(parameterIndex);
-					//	float pDefVal = limiterPlugin.get()->getParameterDefaultValue(parameterIndex);
-					//	String pLabel = limiterPlugin.get()->getParameterLabel(parameterIndex);
-
-				}
 			}
 		}
 	}
-
-
 }
+
+//#define dB(x) 20.0 * ((x) > 0.00001 ? log10(x) : -5.0)
+//#define dB2mag(x) pow(10.0, (x) / 20.0)
+//void MainComponent::applyBrickwallLimiter(AudioSampleBuffer* audioBuffer)
+//{
+//	float* leftChannelData = audioBuffer->getWritePointer(0);
+//	float* rightChannelData = audioBuffer->getWritePointer(1);
+//	for (int i = 0; i < audioBuffer->getNumSamples(); i++)
+//	{
+//		// Peak detector
+//		peakOutL = leftLevelDetector->tick(leftChannelData[i]);
+//		peakOutR = rightLevelDetector->tick(rightChannelData[i]);
+//		peakSum = (peakOutL + peakOutR) * 0.5f;
+//
+//		// Convert to db
+//		peakSumDb = dB(peakSum);
+//
+//		// Calculate gain
+//		if (peakSumDb < thresholdDb)
+//		{
+//			gainDb = 0.f;
+//		}
+//		else
+//		{
+//			gainDb = -(peakSumDb - thresholdDb) * (1.f - 1.f / aRatio);
+//		}
+//
+//		// Gain dynamics (attack and release)
+//		gainDb = gainDymanics->tick(gainDb);
+//
+//		// Convert to Linear
+//		gain = dB2mag(gainDb);
+//
+//		// Apply gain
+//		leftChannelData[i] *= gain;
+//		rightChannelData[i] *= gain;
+//	}
+//}
 
 #pragma endregion
 
