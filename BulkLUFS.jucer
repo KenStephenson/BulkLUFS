@@ -33,70 +33,10 @@
           <FILE id="CTDPAT" name="SecondOrderIIRFilter.h" compile="0" resource="0"
                 file="Source/LoudnessProcessor/filters/SecondOrderIIRFilter.h"/>
         </GROUP>
-        <GROUP id="{1DD2A0A6-85FD-3489-F70F-177E7EE4527D}" name="gui">
-          <FILE id="OPO6qg" name="AnimatedSidePanel.cpp" compile="1" resource="0"
-                file="Source/LoudnessProcessor/gui/AnimatedSidePanel.cpp"/>
-          <FILE id="WXNRUk" name="AnimatedSidePanel.h" compile="0" resource="0"
-                file="Source/LoudnessProcessor/gui/AnimatedSidePanel.h"/>
-          <FILE id="WNa8kg" name="BackgroundGrid.cpp" compile="1" resource="0"
-                file="Source/LoudnessProcessor/gui/BackgroundGrid.cpp"/>
-          <FILE id="tx4EcL" name="BackgroundGrid.h" compile="0" resource="0"
-                file="Source/LoudnessProcessor/gui/BackgroundGrid.h"/>
-          <FILE id="Cmrylu" name="BackgroundGridCaption.cpp" compile="1" resource="0"
-                file="Source/LoudnessProcessor/gui/BackgroundGridCaption.cpp"/>
-          <FILE id="l1kNKx" name="BackgroundGridCaption.h" compile="0" resource="0"
-                file="Source/LoudnessProcessor/gui/BackgroundGridCaption.h"/>
-          <FILE id="wFQPcZ" name="BackgroundVerticalLinesAndCaption.cpp" compile="1"
-                resource="0" file="Source/LoudnessProcessor/gui/BackgroundVerticalLinesAndCaption.cpp"/>
-          <FILE id="lzrNz6" name="BackgroundVerticalLinesAndCaption.h" compile="0"
-                resource="0" file="Source/LoudnessProcessor/gui/BackgroundVerticalLinesAndCaption.h"/>
-          <FILE id="dZ1EUO" name="LoudnessBar.cpp" compile="1" resource="0" file="Source/LoudnessProcessor/gui/LoudnessBar.cpp"/>
-          <FILE id="ZL8MZk" name="LoudnessBar.h" compile="0" resource="0" file="Source/LoudnessProcessor/gui/LoudnessBar.h"/>
-          <FILE id="nbXZpz" name="LoudnessBarRangeSlider.cpp" compile="1" resource="0"
-                file="Source/LoudnessProcessor/gui/LoudnessBarRangeSlider.cpp"/>
-          <FILE id="ffL51n" name="LoudnessBarRangeSlider.h" compile="0" resource="0"
-                file="Source/LoudnessProcessor/gui/LoudnessBarRangeSlider.h"/>
-          <FILE id="BgSvp4" name="LoudnessHistory.cpp" compile="1" resource="0"
-                file="Source/LoudnessProcessor/gui/LoudnessHistory.cpp"/>
-          <FILE id="TIIfCB" name="LoudnessHistory.h" compile="0" resource="0"
-                file="Source/LoudnessProcessor/gui/LoudnessHistory.h"/>
-          <FILE id="OkNsvt" name="LoudnessHistoryGroup.cpp" compile="1" resource="0"
-                file="Source/LoudnessProcessor/gui/LoudnessHistoryGroup.cpp"/>
-          <FILE id="kN3Eo3" name="LoudnessHistoryGroup.h" compile="0" resource="0"
-                file="Source/LoudnessProcessor/gui/LoudnessHistoryGroup.h"/>
-          <FILE id="YWl5Ve" name="LoudnessNumeric.cpp" compile="1" resource="0"
-                file="Source/LoudnessProcessor/gui/LoudnessNumeric.cpp"/>
-          <FILE id="haKduP" name="LoudnessNumeric.h" compile="0" resource="0"
-                file="Source/LoudnessProcessor/gui/LoudnessNumeric.h"/>
-          <FILE id="V87jST" name="LoudnessRangeBar.cpp" compile="1" resource="0"
-                file="Source/LoudnessProcessor/gui/LoudnessRangeBar.cpp"/>
-          <FILE id="P8PXc4" name="LoudnessRangeBar.h" compile="0" resource="0"
-                file="Source/LoudnessProcessor/gui/LoudnessRangeBar.h"/>
-          <FILE id="onw4lm" name="LoudnessRangeHistory.cpp" compile="1" resource="0"
-                file="Source/LoudnessProcessor/gui/LoudnessRangeHistory.cpp"/>
-          <FILE id="aaP687" name="LoudnessRangeHistory.h" compile="0" resource="0"
-                file="Source/LoudnessProcessor/gui/LoudnessRangeHistory.h"/>
-          <FILE id="EstpPw" name="MultiChannelLoudnessBar.cpp" compile="1" resource="0"
-                file="Source/LoudnessProcessor/gui/MultiChannelLoudnessBar.cpp"/>
-          <FILE id="F2S8ty" name="MultiChannelLoudnessBar.h" compile="0" resource="0"
-                file="Source/LoudnessProcessor/gui/MultiChannelLoudnessBar.h"/>
-          <FILE id="WllXF7" name="PreferencesPane.cpp" compile="1" resource="0"
-                file="Source/LoudnessProcessor/gui/PreferencesPane.cpp"/>
-          <FILE id="si3Ism" name="PreferencesPane.h" compile="0" resource="0"
-                file="Source/LoudnessProcessor/gui/PreferencesPane.h"/>
-        </GROUP>
         <FILE id="prNkCL" name="Ebu128LoudnessMeter.cpp" compile="1" resource="0"
               file="Source/LoudnessProcessor/Ebu128LoudnessMeter.cpp"/>
         <FILE id="Dvqx6l" name="Ebu128LoudnessMeter.h" compile="0" resource="0"
               file="Source/LoudnessProcessor/Ebu128LoudnessMeter.h"/>
-        <FILE id="TfJujw" name="LUFSMeterAudioProcessor.cpp" compile="1" resource="0"
-              file="Source/LoudnessProcessor/LUFSMeterAudioProcessor.cpp"/>
-        <FILE id="oj3Bzn" name="LUFSMeterAudioProcessor.h" compile="0" resource="0"
-              file="Source/LoudnessProcessor/LUFSMeterAudioProcessor.h"/>
-        <FILE id="bIr7wW" name="LUFSMeterAudioProcessorEditor.cpp" compile="1"
-              resource="0" file="Source/LoudnessProcessor/LUFSMeterAudioProcessorEditor.cpp"/>
-        <FILE id="ixfs3T" name="LUFSMeterAudioProcessorEditor.h" compile="0"
-              resource="0" file="Source/LoudnessProcessor/LUFSMeterAudioProcessorEditor.h"/>
         <FILE id="RJLQuH" name="MacrosAndJuceHeaders.h" compile="0" resource="0"
               file="Source/LoudnessProcessor/MacrosAndJuceHeaders.h"/>
       </GROUP>

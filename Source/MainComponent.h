@@ -11,7 +11,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "./View/Screen.h"
 #include "./View/FileListBoxModel.h"
-#include "./LoudnessProcessor/LUFSMeterAudioProcessor.h"
+#include "./LoudnessProcessor/Ebu128LoudnessMeter.h"
 #include "./VstHost/PluginWrapperProcessor.h"
 
 //==============================================================================
@@ -19,7 +19,32 @@
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class MainComponent : public AudioAppComponent, public ListBoxModelListener
+class TimerListener
+{
+public:
+	TimerListener() {};
+	~TimerListener() {};
+	virtual void handleTimerTick() {};
+};
+class PulseTimer : public Timer
+{
+public:
+	PulseTimer() { listener = nullptr; }
+	PulseTimer(TimerListener* lstnr) { listener = lstnr; }
+	~PulseTimer() {};
+
+private:
+	void timerCallback()
+	{
+		if (listener != nullptr)
+		{
+			listener->handleTimerTick();
+		}
+	}
+	TimerListener* listener;
+};
+
+class MainComponent : public AudioAppComponent, public ListBoxModelListener, public TimerListener
 {
 	public:
 		//==============================================================================
@@ -63,14 +88,23 @@ class MainComponent : public AudioAppComponent, public ListBoxModelListener
 		Array<File> outputFiles;
 		int activeIndex;
 		File activeFile;
+		
 		float dBLufsTarget;
 		float dBLimiterCeiling;
 		double fileSampleRate;
 		double bitsPerSample;
 		int64 fileTotalLength;
 		int64 fileGetNextReadPosition;
+		
+		int expectedRequestRate = 10;
+		int samplesPerBlock = 44100;
+		int bufferPointer = 0;
+		int64 numSamples = 0;
+		int64 numChannels = 0;
 
 		void runProcess();
+		void processNextFile();
+		void handleTimerTick() override;
 		void runPostProcess();
 		void applyGain(AudioSampleBuffer* audioBuffer);
 		void applyBrickwallLimiter(AudioSampleBuffer* audioBuffer);
@@ -96,7 +130,9 @@ class MainComponent : public AudioAppComponent, public ListBoxModelListener
 		};
 		TransportState state;
 
-		std::unique_ptr<LUFSMeterAudioProcessor> ebuLoudnessMeter;
+		std::unique_ptr<Ebu128LoudnessMeter> ebuLoudnessMeter;
+		std::unique_ptr<AudioSampleBuffer> audioBuffer;
+		std::unique_ptr<PulseTimer> timer;
 		std::unique_ptr<AudioProcessor> limiterPlugin;
 
 		const String limiterPluginName = "George Yohng's W1 Limiter x64";
