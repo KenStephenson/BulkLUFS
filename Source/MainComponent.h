@@ -93,6 +93,7 @@ class MainComponent : public Component, public ListBoxModelListener, public Time
 		double bitsPerSample;
 		int64 fileTotalLength;
 		int64 fileGetNextReadPosition;
+		
 		int expectedRequestRate = 10;
 		int samplesPerBlock = 44100;
 		int bufferPointer = 0;

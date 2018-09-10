@@ -10,10 +10,20 @@
 
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
+class FileLoudnessDetails
+{
+	public:
+		File file;
+		float preIntegratedLufs;
+		float prePeakDbfs;
+		float postIntegratedLufs;
+		float postPeakDbfs;
+};
+
 class ListBoxModelListener
 {
-public:
-	virtual void ModelRefresh(String tag) {};
+	public:
+		virtual void ModelRefresh(String tag) {};
 };
 
 class FileListBoxModel : public ListBoxModel

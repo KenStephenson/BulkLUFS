@@ -77,19 +77,7 @@ class InputPanel : public Component
 			listInputFiles.setColour(ListBox::backgroundColourId, ColourFactory::getColour(theme::LIST_INPUTS_COLOUR));
 			listInputFiles.setColour(ListBox::outlineColourId, ColourFactory::getColour(theme::LIST_OUTLINE_COLOUR));
 
-			btnDestFolder.setButtonText("2 - Select Output Folder");
-			btnDestFolder.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
-			btnDestFolder.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
-			btnDestFolder.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
-
-			lblDestFolder.setText(tagNoDestinationFolder, dontSendNotification);
-			lblDestFolder.setColour(Label::textColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));
-			lblDestFolder.setColour(Label::backgroundColourId, ColourFactory::getColour(theme::LABEL_BK_COLOUR));
-			lblDestFolder.setJustificationType(Justification::centred);
-
 			addAndMakeVisible(&btnAddFiles);
-			addAndMakeVisible(&btnDestFolder);
-			addAndMakeVisible(&lblDestFolder);
 			addAndMakeVisible(&listInputFiles);
 		}
 		~InputPanel()
@@ -109,9 +97,7 @@ class InputPanel : public Component
 			fbLeftPanel.flexDirection = FlexBox::Direction::column;
 
 			fbLeftPanel.items.add(FlexItem(btnAddFiles).withMinHeight(50.0f).withMaxHeight(50.0f).withMinWidth(50.0f).withFlex(1));
-			fbLeftPanel.items.add(FlexItem(listInputFiles).withMinHeight(450.0f).withMinWidth(50.0f).withFlex(1));
-			fbLeftPanel.items.add(FlexItem(btnDestFolder).withMinHeight(50.0f).withMaxHeight(50.0f).withMinWidth(100.0f).withFlex(1));
-			fbLeftPanel.items.add(FlexItem(lblDestFolder).withMinHeight(50.0f).withMaxHeight(50.0f).withMinWidth(100.0f).withFlex(1));
+			fbLeftPanel.items.add(FlexItem(listInputFiles).withMinHeight(550.0f).withMinWidth(50.0f).withFlex(1));
 
 			//==============================================================================
 			FlexBox fb;
@@ -121,11 +107,8 @@ class InputPanel : public Component
 		}
 
 
-		const String tagNoDestinationFolder = "No Folder Selected...";
 		Colour backgroundColour;
 		TextButton btnAddFiles;
-		TextButton btnDestFolder;
-		Label lblDestFolder;
 		ListBox listInputFiles;
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(InputPanel)
 };
@@ -138,6 +121,17 @@ class ControlsPanel : public Component
 			using theme = ColourFactory::ThemeComponent;
 
 			backgroundColour = ColourFactory::getColour(theme::PANEL_BK_COLOUR);
+
+			btnDestFolder.setButtonText("2 - Select Output Folder");
+			btnDestFolder.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
+			btnDestFolder.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
+			btnDestFolder.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
+
+			lblDestFolder.setText(tagNoDestinationFolder, dontSendNotification);
+			lblDestFolder.setColour(Label::textColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));
+			lblDestFolder.setColour(Label::backgroundColourId, ColourFactory::getColour(theme::LABEL_BK_COLOUR));
+			lblDestFolder.setJustificationType(Justification::centred);
+
 
 			btnRunProcess.setButtonText("3 - RUN PROCESS");
 			btnRunProcess.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
@@ -174,6 +168,8 @@ class ControlsPanel : public Component
 			listOutputFiles.setColour(ListBox::backgroundColourId, ColourFactory::getColour(theme::LIST_OUTPUTS_COLOUR));
 			listOutputFiles.setColour(ListBox::outlineColourId, ColourFactory::getColour(theme::LIST_OUTLINE_COLOUR));
 
+			addAndMakeVisible(&btnDestFolder);
+			addAndMakeVisible(&lblDestFolder);
 			addAndMakeVisible(&btnRunProcess);
 			addAndMakeVisible(&lblLUFSTarget);
 			addAndMakeVisible(&sldLUFSTarget);
@@ -199,6 +195,8 @@ class ControlsPanel : public Component
 			fbCentrePanel.justifyContent = FlexBox::JustifyContent::center;
 			fbCentrePanel.flexDirection = FlexBox::Direction::column;
 
+			fbCentrePanel.items.add(FlexItem(btnDestFolder).withMinHeight(50.0f).withMaxHeight(50.0f).withMinWidth(100.0f).withFlex(1));
+			fbCentrePanel.items.add(FlexItem(lblDestFolder).withMinHeight(50.0f).withMaxHeight(50.0f).withMinWidth(100.0f).withFlex(1));
 			fbCentrePanel.items.add(FlexItem(btnRunProcess).withMinHeight(50.0f).withMaxHeight(50.0f).withMinWidth(100.0f).withFlex(1));
 			fbCentrePanel.items.add(FlexItem(lblLUFSTarget).withMinHeight(30.0f).withMaxHeight(30.0f).withMinWidth(100.0f).withFlex(1));
 			fbCentrePanel.items.add(FlexItem(sldLUFSTarget).withMinHeight(50.0f).withMaxHeight(50.0f).withMinWidth(100.0f).withFlex(1));
@@ -215,6 +213,8 @@ class ControlsPanel : public Component
 		}
 
 		Colour backgroundColour;
+		TextButton btnDestFolder;
+		Label lblDestFolder;
 		TextButton btnRunProcess;
 		Label lblLUFSTarget;
 		Slider sldLUFSTarget;
@@ -225,6 +225,7 @@ class ControlsPanel : public Component
 		double progressValue;
 		std::unique_ptr<ProgressBar> progressBar;
 
+		const String tagNoDestinationFolder = "No Folder Selected...";
 		const String tagSliderIdLUFS = "LUFS";
 		const String tagSliderIdCeiling = "CEILING";
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ControlsPanel)

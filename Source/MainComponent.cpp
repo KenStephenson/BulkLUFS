@@ -18,7 +18,7 @@ MainComponent::MainComponent()
 	preProcessLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
 	formatManager.registerBasicFormats();
 
-	setSize(600, 600);
+	setSize(900, 600);
 }
 
 MainComponent::~MainComponent()
@@ -55,6 +55,8 @@ void MainComponent::processNextFile()
 		return;
 	}
 	activeFile = inputFiles[activeIndex];
+	updateProgressPercentage();
+
 	if (loadFileFromDisk(activeFile))
 	{
 		AudioFormatReader* fmtReader = readerSource->getAudioFormatReader();
@@ -234,7 +236,7 @@ void MainComponent::resized()
 	using Track = Grid::TrackInfo;
 
 	grid.templateRows = { Track(1_fr) };
-	grid.templateColumns = { Track(1_fr), Track(1_fr) };
+	grid.templateColumns = { Track(2_fr), Track(1_fr) };
 	grid.items = { GridItem(leftPanel), GridItem(mainPanel), };
 	grid.performLayout(getLocalBounds());
 }
@@ -244,7 +246,7 @@ void MainComponent::initialiseUserInterface()
 	addAndMakeVisible(mainPanel);
 
 	leftPanel.btnAddFiles.onClick = [this] { addFilesButtonClicked(); };
-	leftPanel.btnDestFolder.onClick = [this] { destinationFolderButtonClicked(); };
+	mainPanel.btnDestFolder.onClick = [this] { destinationFolderButtonClicked(); };
 	mainPanel.btnRunProcess.onClick = [this] { runProcessButtonClicked(); };
 
 	inputListModel.setListener(this, tagInputList);
@@ -276,11 +278,11 @@ void MainComponent::destinationFolderButtonClicked()
 	if (chooser.browseForDirectory())
 	{
 		destinationFolder = chooser.getResult();
-		leftPanel.lblDestFolder.setText(destinationFolder.getFileNameWithoutExtension(), dontSendNotification);
+		mainPanel.lblDestFolder.setText(destinationFolder.getFileNameWithoutExtension(), dontSendNotification);
 	}
 	else
 	{
-		leftPanel.lblDestFolder.setText(leftPanel.tagNoDestinationFolder, dontSendNotification);
+		mainPanel.lblDestFolder.setText(mainPanel.tagNoDestinationFolder, dontSendNotification);
 	}
 }
 void MainComponent::runProcessButtonClicked()
@@ -297,7 +299,7 @@ bool MainComponent::validateProcessorParameters()
 		dlg.runModalLoop();
 		return false;
 	}
-	if (leftPanel.lblDestFolder.getText() == leftPanel.tagNoDestinationFolder)
+	if (mainPanel.lblDestFolder.getText() == mainPanel.tagNoDestinationFolder)
 	{
 		AlertWindow dlg("Parameter Error", "No Output Folder", AlertWindow::AlertIconType::WarningIcon);
 		dlg.addButton("OK", 1);
@@ -318,9 +320,9 @@ bool MainComponent::validateProcessorParameters()
 void MainComponent::updateProgressPercentage()
 {
 	double percent = 0;
-	if (fileTotalLength > 0)
+	if (inputListModel.getNumRows() > 0)
 	{
-		percent = ((double)fileGetNextReadPosition / (double)fileTotalLength);
+		percent = ((double)activeIndex / (double)inputListModel.getNumRows());
 	}
 	mainPanel.progressValue = percent;
 }
