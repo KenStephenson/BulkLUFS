@@ -13,7 +13,6 @@
 #include "./View/FileListBoxModel.h"
 #include "./EBU-R128/Ebu128LoudnessMeter.h"
 #include "./VstHost/PluginWrapperProcessor.h"
-#include "./OfflineLoudnessProcessor/OfflineLoudnessProcessor.h"
 
 //==============================================================================
 /*
@@ -67,9 +66,11 @@ class MainComponent : public Component, public ListBoxModelListener, public Time
 		void runProcess();
 		void processNextFile();
 		void handleTimerTick() override;
+		void analyseBufferLoudness(int bufferSize);
 		void runPostProcess();
 		void applyGain(AudioSampleBuffer* audioBuffer);
 		void applyBrickwallLimiter(AudioSampleBuffer* audioBuffer);
+		void readPostProcessLoudness();
 		void writeOutputFile(AudioSampleBuffer* audioBuffer);
 		bool validateProcessorParameters();
 		bool loadFileFromDisk(File srcFile);
@@ -97,6 +98,7 @@ class MainComponent : public Component, public ListBoxModelListener, public Time
 		int bufferPointer = 0;
 		int64 numSamples = 0;
 		int64 numChannels = 0;
+		bool isPostProcess = false;
 
 		Array<File> inputFiles;
 		Array<File> outputFiles;

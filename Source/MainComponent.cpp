@@ -73,6 +73,7 @@ void MainComponent::processNextFile()
 		postProcessLoudnessMeter->reset();
 		postProcessLoudnessMeter->prepareToPlay(numSamples, 2, samplesPerBlock, expectedRequestRate);
 
+		isPostProcess = false;
 		bufferPointer = 0;
 		timer.get()->startTimerHz(100.0f);
 	}
@@ -83,22 +84,47 @@ void MainComponent::handleTimerTick()
 	if (bufferPointer >= numSamples - samplesPerBlock)
 	{
 		timer->stopTimer();
+
+		analyseBufferLoudness(numSamples - bufferPointer);
+
 		runPostProcess();
 
 		activeIndex++;
 		processNextFile();
 	}
-	AudioSampleBuffer workBuffer(numChannels, samplesPerBlock);
-	workBuffer.setDataToReferTo((float**)audioBuffer.get()->getArrayOfReadPointers(), numChannels, bufferPointer, samplesPerBlock);
-	preProcessLoudnessMeter->processBlock(workBuffer);
-	bufferPointer += samplesPerBlock;
+	else
+	{
+		analyseBufferLoudness(samplesPerBlock);
+	}
+}
+
+void MainComponent::analyseBufferLoudness(int bufferSize)
+{
+	AudioSampleBuffer workBuffer(numChannels, bufferSize);
+	workBuffer.setDataToReferTo((float**)audioBuffer.get()->getArrayOfReadPointers(), numChannels, bufferPointer, bufferSize);
+	if (isPostProcess)
+	{
+		postProcessLoudnessMeter->processBlock(workBuffer);
+	}
+	else
+	{
+		preProcessLoudnessMeter->processBlock(workBuffer);
+	}
+	bufferPointer += bufferSize;
 }
 
 void MainComponent::runPostProcess()
 {
+	if (isPostProcess == true)
+	{
+		// finished
+		isPostProcess = false;
+	}
+	isPostProcess = true;
 	applyGain(audioBuffer.get());
 	applyBrickwallLimiter(audioBuffer.get());
-	writeOutputFile(audioBuffer.get());
+	readPostProcessLoudness();
+	//writeOutputFile(audioBuffer.get());
 }
 void MainComponent::applyGain(AudioSampleBuffer* audioBuffer)
 {
@@ -126,7 +152,11 @@ void MainComponent::applyBrickwallLimiter(AudioSampleBuffer* audioBuffer)
 	limiterPlugin.get()->processBlock(*audioBuffer, midiBuffer);
 	
 	float max = audioBuffer->getMagnitude(0, numSamples);
-
+}
+void MainComponent::readPostProcessLoudness()
+{
+	bufferPointer = 0;
+	timer.get()->startTimerHz(100.0f);
 }
 void MainComponent::writeOutputFile(AudioSampleBuffer* audioBuffer)
 {
