@@ -18,13 +18,120 @@ MainComponent::MainComponent()
 	preProcessLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
 	formatManager.registerBasicFormats();
 
-	setSize(900, 600);
+	setSize(1000, 600);
 }
 
 MainComponent::~MainComponent()
 {
 }
 
+#pragma region User Interface
+void MainComponent::paint (Graphics& g)
+{
+    // (Our component is opaque, so we must completely fill the background with a solid colour)
+	g.fillAll(Colours::lightgrey);
+
+    // You can add your drawing code here!
+	g.setColour(Colours::black);
+	g.drawRect(leftPanel.getLocalBounds());
+	g.drawRect(mainPanel.getLocalBounds());
+}
+void MainComponent::resized()
+{
+	Grid grid;
+	using Track = Grid::TrackInfo;
+
+	grid.templateRows = { Track(1_fr) };
+	grid.templateColumns = { Track(3_fr), Track(1_fr) };
+	grid.items = { GridItem(leftPanel), GridItem(mainPanel), };
+	grid.performLayout(getLocalBounds());
+}
+void MainComponent::initialiseUserInterface()
+{
+	inputListModel = std::make_unique<FileListBoxModel>();
+
+	addAndMakeVisible(leftPanel);
+	addAndMakeVisible(mainPanel);
+
+	leftPanel.btnAddFiles.onClick = [this] { addFilesButtonClicked(); };
+	mainPanel.btnDestFolder.onClick = [this] { destinationFolderButtonClicked(); };
+	mainPanel.btnRunProcess.onClick = [this] { runProcessButtonClicked(); };
+
+	inputListModel.get()->setListener(this, tagInputList);
+	leftPanel.listInputFiles.setModel(inputListModel.get());
+}
+void MainComponent::refreshFileTableModel(String tag)
+{
+	if (tag == tagInputList)
+	{
+		leftPanel.listInputFiles.updateContent();
+	}
+};
+void MainComponent::addFilesButtonClicked()
+{
+	FileChooser chooser("Select files to process...", File::nonexistent, "*.wav");
+	if (chooser.browseForMultipleFilesToOpen())
+	{
+		for (int i = 0; i < chooser.getResults().size(); i++)
+		{
+			File f = chooser.getResults()[i];
+			inputListModel->data.add(new FileLoudnessDetails(i, f));
+		}
+		inputFolder = inputListModel->data[0]->file.getParentDirectory();
+	}
+	leftPanel.listInputFiles.updateContent();
+}
+void MainComponent::destinationFolderButtonClicked()
+{
+	FileChooser chooser("Select output folder...", inputFolder, "*.*");
+	if (chooser.browseForDirectory())
+	{
+		destinationFolder = chooser.getResult();
+		mainPanel.lblDestFolder.setText(destinationFolder.getFileNameWithoutExtension(), dontSendNotification);
+	}
+	else
+	{
+		mainPanel.lblDestFolder.setText(mainPanel.tagNoDestinationFolder, dontSendNotification);
+	}
+}
+void MainComponent::runProcessButtonClicked()
+{
+	runProcess();
+
+	leftPanel.listInputFiles.updateContent();
+}
+bool MainComponent::validateProcessorParameters()
+{
+	if (inputListModel->getNumRows() == 0)
+	{
+		AlertWindow dlg("Parameter Error", "No Input Files", AlertWindow::AlertIconType::WarningIcon);
+		dlg.addButton("OK", 1);
+		dlg.setUsingNativeTitleBar(true);
+		dlg.runModalLoop();
+		return false;
+	}
+	
+	writeFile = mainPanel.lblDestFolder.getText() != mainPanel.tagNoDestinationFolder ? true : false;
+	if (writeFile && destinationFolder == inputFolder)
+	{
+		AlertWindow dlg("Parameter Error", "Input and Output folders are the same", AlertWindow::AlertIconType::WarningIcon);
+		dlg.addButton("OK", 1);
+		dlg.setUsingNativeTitleBar(true);
+		dlg.runModalLoop();
+		return false;
+	}
+	return true;
+}
+void MainComponent::updateProgressPercentage()
+{
+	double percent = 0;
+	if (inputListModel->getNumRows() > 0)
+	{
+		percent = ((double)activeIndex / (double)inputListModel->getNumRows());
+	}
+	mainPanel.progressValue = percent;
+}
+#pragma endregion
 
 #pragma region Run Batch Audio Processing
 void MainComponent::runProcess()
@@ -37,8 +144,6 @@ void MainComponent::runProcess()
 	// Collect the Process Parameters
 	dBLufsTarget = mainPanel.sldLUFSTarget.getValue();
 	dBLimiterCeiling = mainPanel.sldLimiterCeiling.getValue();
-	inputFiles = inputListModel.data;
-	outputFiles.clear();
 
 	preProcessLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
 	postProcessLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
@@ -49,15 +154,16 @@ void MainComponent::runProcess()
 }
 void MainComponent::processNextFile()
 {
-	if (activeIndex >= inputFiles.size())
+	if (activeIndex >= inputListModel->data.size())
 	{
 		// completed
+		updateProgressPercentage();
 		return;
 	}
-	activeFile = inputFiles[activeIndex];
+	activeFile = inputListModel->data[activeIndex];
 	updateProgressPercentage();
 
-	if (loadFileFromDisk(activeFile))
+	if (loadFileFromDisk(activeFile->file))
 	{
 		AudioFormatReader* fmtReader = readerSource->getAudioFormatReader();
 		numSamples = fmtReader->lengthInSamples;
@@ -77,33 +183,32 @@ void MainComponent::processNextFile()
 
 		isPostProcess = false;
 		bufferPointer = 0;
-		timer.get()->startTimerHz(100.0f);
+		timer.get()->startTimerHz(1000.0f);
 	}
 }
 
 void MainComponent::handleTimerTick()
 {
-	if (bufferPointer >= numSamples - samplesPerBlock)
+	if (bufferPointer > numSamples - samplesPerBlock)
 	{
 		timer->stopTimer();
+		bufferPointer = 0;
 
 		analyseBufferLoudness(numSamples - bufferPointer);
-
-		runPostProcess();
-
-		activeIndex++;
-		processNextFile();
+		
+		loudnessScanComplete();
 	}
 	else
 	{
 		analyseBufferLoudness(samplesPerBlock);
+		bufferPointer += samplesPerBlock;
 	}
 }
 
 void MainComponent::analyseBufferLoudness(int bufferSize)
 {
 	AudioSampleBuffer workBuffer(numChannels, bufferSize);
-	workBuffer.setDataToReferTo((float**)audioBuffer.get()->getArrayOfReadPointers(), numChannels, bufferPointer, bufferSize);
+	workBuffer.setDataToReferTo((float**)audioBuffer->getArrayOfReadPointers(), numChannels, bufferPointer, bufferSize);
 	if (isPostProcess)
 	{
 		postProcessLoudnessMeter->processBlock(workBuffer);
@@ -112,35 +217,56 @@ void MainComponent::analyseBufferLoudness(int bufferSize)
 	{
 		preProcessLoudnessMeter->processBlock(workBuffer);
 	}
-	bufferPointer += bufferSize;
 }
 
-void MainComponent::runPostProcess()
+void MainComponent::loudnessScanComplete()
 {
-	if (isPostProcess == true)
+	if (isPostProcess == false)
 	{
-		// finished
-		isPostProcess = false;
+		// This called after the Initial Loudness scan
+		// Start the Post Processing
+		// the Post Process Loudness scan will restart the timer and will finalise in this runPostProcessing
+		isPostProcess = true;
+
+		activeFile->preIntegratedLufs = preProcessLoudnessMeter->getIntegratedLoudness();
+		activeFile->prePeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, numSamples));
+
+		applyGain();
+		applyBrickwallLimiter();
+		readPostProcessLoudness(); 
 	}
-	isPostProcess = true;
-	applyGain(audioBuffer.get());
-	applyBrickwallLimiter(audioBuffer.get());
-	readPostProcessLoudness();
-	//writeOutputFile(audioBuffer.get());
+	else
+	{
+		// This called after the Post Processing has been done
+		// Finalise and call the next file
+		activeFile->postIntegratedLufs = postProcessLoudnessMeter->getIntegratedLoudness();
+		activeFile->postPeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, numSamples));
+
+		if (writeFile)
+		{
+			writeOutputFile();
+		}
+		isPostProcess = false;
+
+		activeIndex++;
+		processNextFile();
+	}
 }
-void MainComponent::applyGain(AudioSampleBuffer* audioBuffer)
+void MainComponent::applyGain()
 {
 	float fileDbLufs = preProcessLoudnessMeter->getIntegratedLoudness();
 	float dbDifference = (fileDbLufs * -1) - (dBLufsTarget * -1);
 	float gainFactor = Decibels::decibelsToGain(dbDifference);
+	activeFile->diffLufs = dbDifference;
+	activeFile->gain = gainFactor;
 	audioBuffer->applyGain(gainFactor);
 }
-void MainComponent::applyBrickwallLimiter(AudioSampleBuffer* audioBuffer)
+void MainComponent::applyBrickwallLimiter()
 {
 	int numSamples = audioBuffer->getNumSamples();
 	float initialCeiling = dBLimiterCeiling;
 	float initialMax = audioBuffer->getMagnitude(0, numSamples);
-	
+
 	float db_1 = Decibels::decibelsToGain(-1.0f);
 	float dbFS = Decibels::decibelsToGain(initialCeiling);
 
@@ -151,26 +277,25 @@ void MainComponent::applyBrickwallLimiter(AudioSampleBuffer* audioBuffer)
 	limiterPlugin->setParameter(3, false);	// Auto Release
 
 	limiterPlugin->prepareToPlay(fileSampleRate, numSamples);
-	limiterPlugin.get()->processBlock(*audioBuffer, midiBuffer);
-	
+	limiterPlugin->processBlock(*audioBuffer, midiBuffer);
+
 	float max = audioBuffer->getMagnitude(0, numSamples);
 }
 void MainComponent::readPostProcessLoudness()
 {
 	bufferPointer = 0;
-	timer.get()->startTimerHz(100.0f);
+	timer.get()->startTimerHz(1000.0f);
 }
-void MainComponent::writeOutputFile(AudioSampleBuffer* audioBuffer)
+void MainComponent::writeOutputFile()
 {
-	File wavFile = destinationFolder.getChildFile(activeFile.getFileName());
+	File wavFile = destinationFolder.getChildFile(activeFile->file.getFileName());
 	wavFile.deleteFile();
 
 	FileOutputStream* fos = new FileOutputStream(wavFile);
 	WavAudioFormat wavFormat;
-	ScopedPointer<AudioFormatWriter> afw(wavFormat.createWriterFor(fos, fileSampleRate, audioBuffer->getNumChannels(), bitsPerSample, StringPairArray(), 0));
+	ScopedPointer<AudioFormatWriter> afw(wavFormat.createWriterFor(fos, fileSampleRate, audioBuffer->getNumChannels(), fileBitsPerSample, StringPairArray(), 0));
 	afw->writeFromAudioSampleBuffer(*audioBuffer, 0, audioBuffer->getNumSamples());
 }
-#pragma endregion
 
 #pragma region Load Resources
 bool MainComponent::loadFileFromDisk(File srcFile)
@@ -181,13 +306,12 @@ bool MainComponent::loadFileFromDisk(File srcFile)
 		readerSource.reset(newSource.release());
 		readerSource->setLooping(false);
 
-		fileTotalLength = readerSource->getTotalLength();
 		fileSampleRate = reader->sampleRate;
-		bitsPerSample = reader->bitsPerSample;
+		fileBitsPerSample = reader->fileBitsPerSample;
 		return true;
 	}
 	fileSampleRate = 0;
-	bitsPerSample = 0;
+	fileBitsPerSample = 0;
 	return false;
 }
 void MainComponent::loadLimiterPlugin()
@@ -219,111 +343,5 @@ void MainComponent::loadLimiterPlugin()
 }
 #pragma endregion
 
-#pragma region User Interface
-void MainComponent::paint (Graphics& g)
-{
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-	g.fillAll(Colours::lightgrey);
-
-    // You can add your drawing code here!
-	g.setColour(Colours::black);
-	g.drawRect(leftPanel.getLocalBounds());
-	g.drawRect(mainPanel.getLocalBounds());
-}
-void MainComponent::resized()
-{
-	Grid grid;
-	using Track = Grid::TrackInfo;
-
-	grid.templateRows = { Track(1_fr) };
-	grid.templateColumns = { Track(2_fr), Track(1_fr) };
-	grid.items = { GridItem(leftPanel), GridItem(mainPanel), };
-	grid.performLayout(getLocalBounds());
-}
-void MainComponent::initialiseUserInterface()
-{
-	addAndMakeVisible(leftPanel);
-	addAndMakeVisible(mainPanel);
-
-	leftPanel.btnAddFiles.onClick = [this] { addFilesButtonClicked(); };
-	mainPanel.btnDestFolder.onClick = [this] { destinationFolderButtonClicked(); };
-	mainPanel.btnRunProcess.onClick = [this] { runProcessButtonClicked(); };
-
-	inputListModel.setListener(this, tagInputList);
-	outputListModel.setListener(this, tagOutputList);
-
-	leftPanel.listInputFiles.setModel(&inputListModel);
-	mainPanel.listOutputFiles.setModel(&outputListModel);
-}
-void MainComponent::ModelRefresh(String tag)
-{
-	if (tag == tagInputList)
-	{
-		leftPanel.listInputFiles.updateContent();
-	}
-};
-void MainComponent::addFilesButtonClicked()
-{
-	FileChooser chooser("Select files to process...", File::nonexistent, "*.wav");
-	if (chooser.browseForMultipleFilesToOpen())
-	{
-		inputListModel.data.addArray(chooser.getResults());
-		inputFolder = inputListModel.data[0].getParentDirectory();
-	}
-	leftPanel.listInputFiles.updateContent();
-}
-void MainComponent::destinationFolderButtonClicked()
-{
-	FileChooser chooser("Select output folder...", inputFolder, "*.*");
-	if (chooser.browseForDirectory())
-	{
-		destinationFolder = chooser.getResult();
-		mainPanel.lblDestFolder.setText(destinationFolder.getFileNameWithoutExtension(), dontSendNotification);
-	}
-	else
-	{
-		mainPanel.lblDestFolder.setText(mainPanel.tagNoDestinationFolder, dontSendNotification);
-	}
-}
-void MainComponent::runProcessButtonClicked()
-{
-	runProcess();
-}
-bool MainComponent::validateProcessorParameters()
-{
-	if (inputListModel.getNumRows() == 0)
-	{
-		AlertWindow dlg("Parameter Error", "No Input Files", AlertWindow::AlertIconType::WarningIcon);
-		dlg.addButton("OK", 1);
-		dlg.setUsingNativeTitleBar(true);
-		dlg.runModalLoop();
-		return false;
-	}
-	if (mainPanel.lblDestFolder.getText() == mainPanel.tagNoDestinationFolder)
-	{
-		AlertWindow dlg("Parameter Error", "No Output Folder", AlertWindow::AlertIconType::WarningIcon);
-		dlg.addButton("OK", 1);
-		dlg.setUsingNativeTitleBar(true);
-		dlg.runModalLoop();
-		return false;
-	}
-	if (destinationFolder == inputFolder)
-	{
-		AlertWindow dlg("Parameter Error", "Input and Output folders are the same", AlertWindow::AlertIconType::WarningIcon);
-		dlg.addButton("OK", 1);
-		dlg.setUsingNativeTitleBar(true);
-		dlg.runModalLoop();
-		return false;
-	}
-	return true;
-}
-void MainComponent::updateProgressPercentage()
-{
-	double percent = 0;
-	if (inputListModel.getNumRows() > 0)
-	{
-		percent = ((double)activeIndex / (double)inputListModel.getNumRows());
-	}
-	mainPanel.progressValue = percent;
-}
 #pragma endregion
+

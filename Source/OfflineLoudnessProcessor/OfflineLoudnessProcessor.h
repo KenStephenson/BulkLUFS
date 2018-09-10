@@ -86,7 +86,7 @@ private:
 		bool isPostProcess = false;
 
 		FileListBoxModel fileListModel;
-		Array<File> inputFiles;
+		Array<FileLoudnessDetails> inputFiles;
 		int activeIndex;
 		File activeFile;
 		File destinationFolder;

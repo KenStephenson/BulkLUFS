@@ -19,7 +19,6 @@ void OfflineLoudnessProcessor::run(float _dBLufsTarget, FileListBoxModel _fileLi
 	dBLufsTarget = _dBLufsTarget;
 	fileListModel = _fileListModel;
 	destinationFolder = _destinationFolder;
-	inputFiles = fileListModel.data;
 
 	formatManager.registerBasicFormats();
 	loadLimiterPlugin();
@@ -38,7 +37,7 @@ void OfflineLoudnessProcessor::run(float _dBLufsTarget, FileListBoxModel _fileLi
 			// completed
 			return;
 		}
-		activeFile = inputFiles[activeIndex];
+		activeFile = inputFiles[activeIndex].file;
 
 		//// must check this as often as possible, because this is
 		//// how we know if the user's pressed 'cancel'

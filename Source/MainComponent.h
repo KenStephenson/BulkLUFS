@@ -58,64 +58,57 @@ class MainComponent : public Component, public ListBoxModelListener, public Time
 		void paint (Graphics& g) override;
 		void resized() override;
 
-		void ModelRefresh(String tag) override;
+		void refreshFileTableModel(String tag) override;
 
 	private:
 
 #pragma region Process Methods and Parameters
-		void runProcess();
-		void processNextFile();
-		void handleTimerTick() override;
-		void analyseBufferLoudness(int bufferSize);
-		void runPostProcess();
-		void applyGain(AudioSampleBuffer* audioBuffer);
-		void applyBrickwallLimiter(AudioSampleBuffer* audioBuffer);
-		void readPostProcessLoudness();
-		void writeOutputFile(AudioSampleBuffer* audioBuffer);
-		bool validateProcessorParameters();
-		bool loadFileFromDisk(File srcFile);
-		void loadLimiterPlugin();
-
 		AudioFormatManager formatManager;
 		MidiBuffer midiBuffer;
 		std::unique_ptr<AudioFormatReaderSource> readerSource;
+		std::unique_ptr<AudioSampleBuffer> audioBuffer;
 		std::unique_ptr<Ebu128LoudnessMeter> preProcessLoudnessMeter;
 		std::unique_ptr<Ebu128LoudnessMeter> postProcessLoudnessMeter;
-		std::unique_ptr<AudioSampleBuffer> audioBuffer;
+		std::shared_ptr<AudioProcessor> limiterPlugin;
 		std::unique_ptr<PulseTimer> timer;
 
-		std::shared_ptr<AudioProcessor> limiterPlugin;
 		const String limiterPluginName = "George Yohng's W1 Limiter x64";
-
 		float dBLufsTarget;
 		float dBLimiterCeiling;
 		double fileSampleRate;
-		double bitsPerSample;
-		int64 fileTotalLength;
-		int64 fileGetNextReadPosition;
-		
+		double fileBitsPerSample;
+		int activeIndex;
+		FileLoudnessDetails* activeFile;
 		int expectedRequestRate = 10;
 		int samplesPerBlock = 44100;
 		int bufferPointer = 0;
 		int64 numSamples = 0;
 		int64 numChannels = 0;
 		bool isPostProcess = false;
-
-		Array<File> inputFiles;
-		Array<File> outputFiles;
-		int activeIndex;
-		File activeFile;
+		bool writeFile = false;
+		void runProcess();
+		void processNextFile();
+		void handleTimerTick() override;
+		void analyseBufferLoudness(int bufferSize);
+		void loudnessScanComplete();
+		void applyGain();
+		void applyBrickwallLimiter();
+		void readPostProcessLoudness();
+		void writeOutputFile();
+		bool validateProcessorParameters();
+		bool loadFileFromDisk(File srcFile);
+		void loadLimiterPlugin();
 #pragma endregion
 
 #pragma region User Interface Parameters
+		std::unique_ptr<FileListBoxModel> inputListModel;
+
 		InputPanel leftPanel;
 		ControlsPanel mainPanel;
 		File inputFolder;
 		File destinationFolder;
-		FileListBoxModel inputListModel;
-		FileListBoxModel outputListModel;
+
 		const String tagInputList = "INPUT";
-		const String tagOutputList = "OUTPUT";
 
 		void initialiseUserInterface();
 		void addFilesButtonClicked();

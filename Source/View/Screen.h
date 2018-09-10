@@ -79,6 +79,14 @@ class InputPanel : public Component
 
 			addAndMakeVisible(&btnAddFiles);
 			addAndMakeVisible(&listInputFiles);
+
+			listInputFiles.getHeader().addColumn("File", 1, 200, TableHeaderComponent::defaultFlags);
+			listInputFiles.getHeader().addColumn("pre LUFS", 2, 80, TableHeaderComponent::defaultFlags);
+			listInputFiles.getHeader().addColumn("pre Peak dB", 3, 80, TableHeaderComponent::defaultFlags);
+			listInputFiles.getHeader().addColumn("diff", 4, 80, TableHeaderComponent::defaultFlags);
+			listInputFiles.getHeader().addColumn("gain", 5, 80, TableHeaderComponent::defaultFlags);
+			listInputFiles.getHeader().addColumn("post LUFS", 6, 80, TableHeaderComponent::defaultFlags);
+			listInputFiles.getHeader().addColumn("post Peak dB", 7, 80, TableHeaderComponent::defaultFlags);
 		}
 		~InputPanel()
 		{
@@ -109,7 +117,7 @@ class InputPanel : public Component
 
 		Colour backgroundColour;
 		TextButton btnAddFiles;
-		ListBox listInputFiles;
+		TableListBox listInputFiles;
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(InputPanel)
 };
 class ControlsPanel : public Component
@@ -220,7 +228,7 @@ class ControlsPanel : public Component
 		Slider sldLUFSTarget;
 		Label lblLimiterCeiling;
 		Slider sldLimiterCeiling;
-		ListBox listOutputFiles;
+		TableListBox listOutputFiles;
 
 		double progressValue;
 		std::unique_ptr<ProgressBar> progressBar;
