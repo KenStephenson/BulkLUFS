@@ -10,6 +10,7 @@
 
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "../View/FileListBoxModel.h"
 
 class OfflineLoudnessProcessor : public ThreadWithProgressWindow
 {
@@ -17,5 +18,5 @@ class OfflineLoudnessProcessor : public ThreadWithProgressWindow
 		OfflineLoudnessProcessor();
 		~OfflineLoudnessProcessor();
 
-		//void ThreadComplete() override;
+		void run(FileListBoxModel fileList);
 };

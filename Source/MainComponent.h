@@ -13,6 +13,7 @@
 #include "./View/FileListBoxModel.h"
 #include "./EBU-R128/Ebu128LoudnessMeter.h"
 #include "./VstHost/PluginWrapperProcessor.h"
+#include "./OfflineLoudnessProcessor/OfflineLoudnessProcessor.h"
 
 //==============================================================================
 /*
@@ -86,8 +87,8 @@ class MainComponent : public AudioAppComponent, public ListBoxModelListener, pub
 		std::unique_ptr<Ebu128LoudnessMeter> postProcessLoudnessMeter;
 		std::unique_ptr<AudioSampleBuffer> audioBuffer;
 		std::unique_ptr<PulseTimer> timer;
-		std::unique_ptr<AudioProcessor> limiterPlugin;
 
+		std::shared_ptr<AudioProcessor> limiterPlugin;
 		const String limiterPluginName = "George Yohng's W1 Limiter x64";
 
 		float dBLufsTarget;

@@ -184,7 +184,7 @@ void MainComponent::loadLimiterPlugin()
 			String ignore;
 			if (AudioPluginInstance* pluginInstance = fm.createPluginInstance(*plugIn, 44100.0, 512, ignore))
 			{
-				limiterPlugin = std::make_unique<PluginWrapperProcessor>(pluginInstance);
+				limiterPlugin = std::make_shared<PluginWrapperProcessor>(pluginInstance);
 			}
 		}
 	}
