@@ -13,20 +13,16 @@ MainComponent::MainComponent()
 {
 	initialiseUserInterface();
 
-	preProcessLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
-
-	setAudioChannels (2, 2);
-	formatManager.registerBasicFormats();
-
 	loadLimiterPlugin();
+
+	preProcessLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
+	formatManager.registerBasicFormats();
 
 	setSize(600, 600);
 }
 
 MainComponent::~MainComponent()
 {
-    // This shuts down the audio device and clears the audio source.
-    shutdownAudio();
 }
 
 
@@ -299,50 +295,3 @@ void MainComponent::updateProgressPercentage()
 	mainPanel.progressValue = percent;
 }
 #pragma endregion
-
-
-
-void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
-{
-	if (readerSource.get() == nullptr)
-	{
-		return;
-	}
-	//leftPanel.setEnabled(false);
-	//mainPanel.setEnabled(false);
-	//mainPanel.progressValue = 0;
-	//fileGetNextReadPosition = 0;
-	//int samplesPerBlock = (int)((double)sampleRate / (double)100);
-
-	//ebuLoudnessMeter->reset();
-	//ebuLoudnessMeter->prepareToPlay(sampleRate, 2, samplesPerBlock, 10);
-	//transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
-	////readerSource->prepareToPlay(samplesPerBlockExpected, sampleRate);
-	//transportSource.start();
-}
-void MainComponent::getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill)
-{
-	if (readerSource.get() == nullptr)
-	{
-		bufferToFill.clearActiveBufferRegion();
-		return;
-	}
-
-	//transportSource.getNextAudioBlock(bufferToFill);
-	//fileGetNextReadPosition = readerSource->getNextReadPosition();
-	//updateProgressPercentage();
-
-	//auto* inBuffer = bufferToFill.buffer->getArrayOfReadPointers();
-	//AudioSampleBuffer sBuffer;
-	//sBuffer.setDataToReferTo((float**)inBuffer, bufferToFill.buffer->getNumChannels(), bufferToFill.numSamples);
-	//ebuLoudnessMeter->processBlock(sBuffer);	
-	//
-	//if(transportSource.isPlaying() == false)
-	//{
-	//	runPostProcess();
-	//	releaseResources();
-	//}
-}
-void MainComponent::releaseResources()
-{
-}

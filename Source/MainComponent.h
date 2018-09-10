@@ -45,7 +45,7 @@ private:
 	TimerListener* listener;
 };
 
-class MainComponent : public AudioAppComponent, public ListBoxModelListener, public TimerListener
+class MainComponent : public Component, public ListBoxModelListener, public TimerListener
 {
 	public:
 		//==============================================================================
@@ -54,11 +54,6 @@ class MainComponent : public AudioAppComponent, public ListBoxModelListener, pub
 		//==============================================================================
 		MainComponent();
 		~MainComponent();
-
-		//==============================================================================
-		void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
-		void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
-		void releaseResources() override;
 
 		//==============================================================================
 		void paint (Graphics& g) override;
