@@ -13,7 +13,7 @@ MainComponent::MainComponent()
 {
 	initialiseUserInterface();
 
-	ebuLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
+	preProcessLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
 
 	setAudioChannels (2, 2);
 	formatManager.registerBasicFormats();
@@ -44,7 +44,8 @@ void MainComponent::runProcess()
 	inputFiles = inputListModel.data;
 	outputFiles.clear();
 
-	ebuLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
+	preProcessLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
+	postProcessLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
 	timer = std::make_unique<PulseTimer>(this);
 
 	activeIndex = 0;
@@ -70,8 +71,11 @@ void MainComponent::processNextFile()
 		expectedRequestRate = 10;
 		samplesPerBlock = fmtReader->sampleRate;
 
-		ebuLoudnessMeter->reset();
-		ebuLoudnessMeter->prepareToPlay(numSamples, 2, samplesPerBlock, expectedRequestRate);
+		preProcessLoudnessMeter->reset();
+		preProcessLoudnessMeter->prepareToPlay(numSamples, 2, samplesPerBlock, expectedRequestRate);
+
+		postProcessLoudnessMeter->reset();
+		postProcessLoudnessMeter->prepareToPlay(numSamples, 2, samplesPerBlock, expectedRequestRate);
 
 		bufferPointer = 0;
 		timer.get()->startTimerHz(100.0f);
@@ -90,7 +94,7 @@ void MainComponent::handleTimerTick()
 	}
 	AudioSampleBuffer workBuffer(numChannels, samplesPerBlock);
 	workBuffer.setDataToReferTo((float**)audioBuffer.get()->getArrayOfReadPointers(), numChannels, bufferPointer, samplesPerBlock);
-	ebuLoudnessMeter->processBlock(workBuffer);
+	preProcessLoudnessMeter->processBlock(workBuffer);
 	bufferPointer += samplesPerBlock;
 }
 
@@ -102,7 +106,7 @@ void MainComponent::runPostProcess()
 }
 void MainComponent::applyGain(AudioSampleBuffer* audioBuffer)
 {
-	float fileDbLufs = ebuLoudnessMeter->getIntegratedLoudness();
+	float fileDbLufs = preProcessLoudnessMeter->getIntegratedLoudness();
 	float dbDifference = (fileDbLufs * -1) - (dBLufsTarget * -1);
 	float gainFactor = Decibels::decibelsToGain(dbDifference);
 	audioBuffer->applyGain(gainFactor);
@@ -146,7 +150,6 @@ bool MainComponent::loadFileFromDisk(File srcFile)
 	if (auto* reader = formatManager.createReaderFor(srcFile))
 	{
 		std::unique_ptr<AudioFormatReaderSource> newSource(new AudioFormatReaderSource(reader, true));
-		transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
 		readerSource.reset(newSource.release());
 		readerSource->setLooping(false);
 
@@ -319,7 +322,7 @@ void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate
 }
 void MainComponent::getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill)
 {
-	if (readerSource.get() == nullptr || transportSource.isPlaying() == false)
+	if (readerSource.get() == nullptr)
 	{
 		bufferToFill.clearActiveBufferRegion();
 		return;
@@ -342,5 +345,4 @@ void MainComponent::getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill
 }
 void MainComponent::releaseResources()
 {
-	transportSource.releaseResources();
 }

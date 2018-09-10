@@ -11,7 +11,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "./View/Screen.h"
 #include "./View/FileListBoxModel.h"
-#include "./LoudnessProcessor/Ebu128LoudnessMeter.h"
+#include "./EBU-R128/Ebu128LoudnessMeter.h"
 #include "./VstHost/PluginWrapperProcessor.h"
 
 //==============================================================================
@@ -66,6 +66,48 @@ class MainComponent : public AudioAppComponent, public ListBoxModelListener, pub
 		void ModelRefresh(String tag) override;
 
 	private:
+
+#pragma region Process Methods and Parameters
+		void runProcess();
+		void processNextFile();
+		void handleTimerTick() override;
+		void runPostProcess();
+		void applyGain(AudioSampleBuffer* audioBuffer);
+		void applyBrickwallLimiter(AudioSampleBuffer* audioBuffer);
+		void writeOutputFile(AudioSampleBuffer* audioBuffer);
+		bool validateProcessorParameters();
+		bool loadFileFromDisk(File srcFile);
+		void loadLimiterPlugin();
+
+		AudioFormatManager formatManager;
+		MidiBuffer midiBuffer;
+		std::unique_ptr<AudioFormatReaderSource> readerSource;
+		std::unique_ptr<Ebu128LoudnessMeter> preProcessLoudnessMeter;
+		std::unique_ptr<Ebu128LoudnessMeter> postProcessLoudnessMeter;
+		std::unique_ptr<AudioSampleBuffer> audioBuffer;
+		std::unique_ptr<PulseTimer> timer;
+		std::unique_ptr<AudioProcessor> limiterPlugin;
+
+		const String limiterPluginName = "George Yohng's W1 Limiter x64";
+
+		float dBLufsTarget;
+		float dBLimiterCeiling;
+		double fileSampleRate;
+		double bitsPerSample;
+		int64 fileTotalLength;
+		int64 fileGetNextReadPosition;
+		int expectedRequestRate = 10;
+		int samplesPerBlock = 44100;
+		int bufferPointer = 0;
+		int64 numSamples = 0;
+		int64 numChannels = 0;
+
+		Array<File> inputFiles;
+		Array<File> outputFiles;
+		int activeIndex;
+		File activeFile;
+#pragma endregion
+
 #pragma region User Interface Parameters
 		InputPanel leftPanel;
 		ControlsPanel mainPanel;
@@ -81,64 +123,6 @@ class MainComponent : public AudioAppComponent, public ListBoxModelListener, pub
 		void destinationFolderButtonClicked();
 		void runProcessButtonClicked();
 		void updateProgressPercentage();
-#pragma endregion
-
-#pragma region Process Parameters
-		Array<File> inputFiles;
-		Array<File> outputFiles;
-		int activeIndex;
-		File activeFile;
-		
-		float dBLufsTarget;
-		float dBLimiterCeiling;
-		double fileSampleRate;
-		double bitsPerSample;
-		int64 fileTotalLength;
-		int64 fileGetNextReadPosition;
-		
-		int expectedRequestRate = 10;
-		int samplesPerBlock = 44100;
-		int bufferPointer = 0;
-		int64 numSamples = 0;
-		int64 numChannels = 0;
-
-		void runProcess();
-		void processNextFile();
-		void handleTimerTick() override;
-		void runPostProcess();
-		void applyGain(AudioSampleBuffer* audioBuffer);
-		void applyBrickwallLimiter(AudioSampleBuffer* audioBuffer);
-		void writeOutputFile(AudioSampleBuffer* audioBuffer);
-
-		bool validateProcessorParameters();
-		bool loadFileFromDisk(File srcFile);
-
-#pragma endregion
-
-#pragma region Audio Processor Rack
-		AudioFormatManager formatManager;
-		std::unique_ptr<AudioFormatReaderSource> readerSource;
-		AudioTransportSource transportSource;
-		enum TransportState
-		{
-			Stopped,
-			Starting,
-			Playing,
-			Stopping,
-			Paused,
-			Pausing,
-		};
-		TransportState state;
-
-		std::unique_ptr<Ebu128LoudnessMeter> ebuLoudnessMeter;
-		std::unique_ptr<AudioSampleBuffer> audioBuffer;
-		std::unique_ptr<PulseTimer> timer;
-		std::unique_ptr<AudioProcessor> limiterPlugin;
-
-		const String limiterPluginName = "George Yohng's W1 Limiter x64";
-		void loadLimiterPlugin();
-		MidiBuffer midiBuffer;
-
 #pragma endregion
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)

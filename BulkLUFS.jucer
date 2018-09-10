@@ -22,23 +22,30 @@
       <FILE id="xezZup" name="icons.zip" compile="0" resource="1" file="Resources/icons.zip"/>
     </GROUP>
     <GROUP id="{01FF0F1F-8943-8B3A-FD46-D36D2D07B328}" name="Source">
+      <GROUP id="{5601C166-21F0-DE9D-9488-DF9910FF994B}" name="OfflineLoudnessProcessor">
+        <FILE id="SUURsi" name="OfflineLoudnessProcessor.cpp" compile="1" resource="0"
+              file="Source/OfflineLoudnessProcessor/OfflineLoudnessProcessor.cpp"/>
+        <FILE id="pCKYQp" name="OfflineLoudnessProcessor.h" compile="0" resource="0"
+              file="Source/OfflineLoudnessProcessor/OfflineLoudnessProcessor.h"/>
+      </GROUP>
+      <GROUP id="{64BA5795-5395-AE6C-250B-03A075D0E047}" name="EBU-R128">
+        <GROUP id="{166E06E5-A441-D607-C2F4-B3B95C15FB34}" name="filters">
+          <FILE id="NpkcWd" name="SecondOrderIIRFilter.cpp" compile="1" resource="0"
+                file="Source/EBU-R128/filters/SecondOrderIIRFilter.cpp"/>
+          <FILE id="cHlmot" name="SecondOrderIIRFilter.h" compile="0" resource="0"
+                file="Source/EBU-R128/filters/SecondOrderIIRFilter.h"/>
+        </GROUP>
+        <GROUP id="{B393CFC4-8F83-1DF8-A3A7-0BA89E4082D8}" name="gui"/>
+        <FILE id="VywCzj" name="Ebu128LoudnessMeter.cpp" compile="1" resource="0"
+              file="Source/EBU-R128/Ebu128LoudnessMeter.cpp"/>
+        <FILE id="IyPX0p" name="Ebu128LoudnessMeter.h" compile="0" resource="0"
+              file="Source/EBU-R128/Ebu128LoudnessMeter.h"/>
+        <FILE id="HlAONe" name="MacrosAndJuceHeaders.h" compile="0" resource="0"
+              file="Source/EBU-R128/MacrosAndJuceHeaders.h"/>
+      </GROUP>
       <GROUP id="{6E571852-C048-E01E-1C8E-0D79E3F65C7C}" name="VstHost">
         <FILE id="XNEgDC" name="PluginWrapperProcessor.h" compile="0" resource="0"
               file="Source/VstHost/PluginWrapperProcessor.h"/>
-      </GROUP>
-      <GROUP id="{654DB378-FD33-255D-BCC7-A9B5F37776AB}" name="LoudnessProcessor">
-        <GROUP id="{D17FE4F2-FC57-29FF-A74F-C0E24B0C14F3}" name="filters">
-          <FILE id="K5R3C1" name="SecondOrderIIRFilter.cpp" compile="1" resource="0"
-                file="Source/LoudnessProcessor/filters/SecondOrderIIRFilter.cpp"/>
-          <FILE id="CTDPAT" name="SecondOrderIIRFilter.h" compile="0" resource="0"
-                file="Source/LoudnessProcessor/filters/SecondOrderIIRFilter.h"/>
-        </GROUP>
-        <FILE id="prNkCL" name="Ebu128LoudnessMeter.cpp" compile="1" resource="0"
-              file="Source/LoudnessProcessor/Ebu128LoudnessMeter.cpp"/>
-        <FILE id="Dvqx6l" name="Ebu128LoudnessMeter.h" compile="0" resource="0"
-              file="Source/LoudnessProcessor/Ebu128LoudnessMeter.h"/>
-        <FILE id="RJLQuH" name="MacrosAndJuceHeaders.h" compile="0" resource="0"
-              file="Source/LoudnessProcessor/MacrosAndJuceHeaders.h"/>
       </GROUP>
       <GROUP id="{CF1EAD79-1B62-FCFD-6EBA-831CED15C230}" name="View">
         <FILE id="Kb2p5J" name="FileListBoxModel.h" compile="0" resource="0"
