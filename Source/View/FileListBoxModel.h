@@ -19,6 +19,11 @@ class FileLoudnessDetails
 
 		int rowNo = 0;
 		File file;
+		File destinationFolder;
+		float dBLufsTarget;
+		float dBLimiterCeiling;
+		bool writeFile = false;
+
 		float preIntegratedLufs = 0;
 		float prePeakDbfs = 0;
 		float diffLufs = 0;

@@ -10,18 +10,13 @@
 
 #include "OfflineLoudnessProcessor.h"
 
-OfflineLoudnessProcessor::OfflineLoudnessProcessor(String threadName, 
-													float _dBLufsTarget, 
-													float _dbLimiterCeiling,
-													FileLoudnessDetails* _fileDetails, 
-													File _destinationFolder, 
-													bool _writeFile)
-	: Thread(threadName),
-	dBLufsTarget(_dBLufsTarget),
-	dBLimiterCeiling(_dbLimiterCeiling),
+OfflineLoudnessProcessor::OfflineLoudnessProcessor(FileLoudnessDetails* _fileDetails)
+	: Thread("LUFSScan"),
 	fileDetails(_fileDetails),
-	destinationFolder(_destinationFolder),
-	writeFile(_writeFile)
+	dBLufsTarget(_fileDetails->dBLufsTarget),
+	dBLimiterCeiling(_fileDetails->dBLimiterCeiling),
+	destinationFolder(_fileDetails->destinationFolder),
+	writeFile(_fileDetails->writeFile)
 {
 };
 

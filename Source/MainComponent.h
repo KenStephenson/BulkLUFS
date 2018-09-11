@@ -19,7 +19,7 @@
     your controls and content.
 */
 
-class MainComponent : public Component, public ListBoxModelListener, public Thread::Listener
+class MainComponent : public Component, public ListBoxModelListener, public Thread::Listener, public TimerListener
 {
 	public:
 		using Track = Grid::TrackInfo;
@@ -33,11 +33,11 @@ class MainComponent : public Component, public ListBoxModelListener, public Thre
 		void refreshFileTableModel(String tag) override;
 
 	private:
-#pragma region Process Methods and Parameters
+		#pragma region Process Methods and Parameters
 		const String tagInputList = "INPUT";
 		std::unique_ptr<FileListBoxModel> inputListModel = nullptr;
-
 		std::unique_ptr<OfflineLoudnessProcessor> scanThread = nullptr;
+
 		int activeIndex;
 		FileLoudnessDetails* activeFileDetail;
 		float dBLufsTarget;
@@ -48,21 +48,20 @@ class MainComponent : public Component, public ListBoxModelListener, public Thre
 		void runProcess();
 		void startProcess();
 		void exitSignalSent() override;
-#pragma endregion
+		#pragma endregion
 
-#pragma region User Interface Parameters
+		#pragma region User Interface Parameters
 		InputPanel leftPanel;
 		ControlsPanel mainPanel;
 		File inputFolder;
 		File destinationFolder;
-
 
 		void initialiseUserInterface();
 		void addFilesButtonClicked();
 		void destinationFolderButtonClicked();
 		void runProcessButtonClicked();
 		void updateProgressPercentage();
-#pragma endregion
+		#pragma endregion
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

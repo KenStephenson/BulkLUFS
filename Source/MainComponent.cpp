@@ -160,19 +160,22 @@ void MainComponent::startProcess()
 		return;
 	}
 	activeFileDetail = inputListModel->data[activeIndex];
+	activeFileDetail->dBLufsTarget = dBLufsTarget;
+	activeFileDetail->dBLimiterCeiling = dBLimiterCeiling;
+	activeFileDetail->destinationFolder = destinationFolder;
+	activeFileDetail->writeFile = writeFile;
+
 	updateProgressPercentage();
 
-	const String threadName = "LufsScan";
-
-	scanThread = std::make_unique<OfflineLoudnessProcessor>(threadName, dBLufsTarget, dBLimiterCeiling, activeFileDetail, destinationFolder, writeFile);
+	scanThread = std::make_unique<OfflineLoudnessProcessor>(activeFileDetail);
 	scanThread->addListener(this);
 	scanThread->startThread();
 }
 
 void MainComponent::exitSignalSent()
 {
+	leftPanel.listInputFiles.repaintRow(activeFileDetail->rowNo);
 	scanThread->removeListener(this);
-	leftPanel.listInputFiles.updateContent();
 	activeIndex++;
 	startProcess();
 }

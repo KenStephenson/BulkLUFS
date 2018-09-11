@@ -43,8 +43,7 @@ class PulseTimer : public Timer
 class OfflineLoudnessProcessor : public Thread, public TimerListener
 {
 	public:
-		OfflineLoudnessProcessor(String threadName, float _dBLufsTarget, float _dbLimiterCeiling, 
-			FileLoudnessDetails* _fileDetails, File _destinationFolder, bool _writeFile);
+		OfflineLoudnessProcessor(FileLoudnessDetails* _fileDetails);
 
 		~OfflineLoudnessProcessor();
 
