@@ -62,7 +62,6 @@ static class ColourFactory
 class InputPanel : public Component
 {
 	public:
-
 		InputPanel()
 		{
 			using theme = ColourFactory::ThemeComponent;
@@ -80,13 +79,13 @@ class InputPanel : public Component
 			addAndMakeVisible(&btnAddFiles);
 			addAndMakeVisible(&listInputFiles);
 
-			listInputFiles.getHeader().addColumn("File", 1, 200, TableHeaderComponent::defaultFlags);
-			listInputFiles.getHeader().addColumn("pre LUFS", 2, 70, TableHeaderComponent::defaultFlags);
-			listInputFiles.getHeader().addColumn("pre Peak dB", 3, 70, TableHeaderComponent::defaultFlags);
-			listInputFiles.getHeader().addColumn("diff", 4, 70, TableHeaderComponent::defaultFlags);
-			listInputFiles.getHeader().addColumn("gain", 5, 70, TableHeaderComponent::defaultFlags);
-			listInputFiles.getHeader().addColumn("post LUFS", 6, 70, TableHeaderComponent::defaultFlags);
-			listInputFiles.getHeader().addColumn("post Peak dB", 7, 70, TableHeaderComponent::defaultFlags);
+			listInputFiles.getHeader().addColumn("File", 1, 200, TableHeaderComponent::notSortable);
+			listInputFiles.getHeader().addColumn("In LUFS", 2, 70, TableHeaderComponent::notSortable);
+			listInputFiles.getHeader().addColumn("In Peak dB", 3, 70, TableHeaderComponent::notSortable);
+			listInputFiles.getHeader().addColumn("Diff LUFS", 4, 70, TableHeaderComponent::notSortable);
+			listInputFiles.getHeader().addColumn("Gain", 5, 70, TableHeaderComponent::notSortable);
+			listInputFiles.getHeader().addColumn("Out LUFS", 6, 70, TableHeaderComponent::notSortable);
+			listInputFiles.getHeader().addColumn("Out Peak dB", 7, 70, TableHeaderComponent::notSortable);
 		}
 		~InputPanel()
 		{
@@ -114,6 +113,10 @@ class InputPanel : public Component
 			fb.performLayout(getLocalBounds().toFloat());
 		}
 
+		void setEnableState(bool state)
+		{
+			btnAddFiles.setEnabled(state);
+		}
 
 		Colour backgroundColour;
 		TextButton btnAddFiles;
@@ -139,7 +142,6 @@ class ControlsPanel : public Component
 			lblDestFolder.setColour(Label::textColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));
 			lblDestFolder.setColour(Label::backgroundColourId, ColourFactory::getColour(theme::LABEL_BK_COLOUR));
 			lblDestFolder.setJustificationType(Justification::centred);
-
 
 			btnRunProcess.setButtonText("3 - RUN PROCESS");
 			btnRunProcess.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
@@ -218,6 +220,13 @@ class ControlsPanel : public Component
 			fb.flexWrap = FlexBox::Wrap::noWrap;
 			fb.items.add(FlexItem(fbCentrePanel).withFlex(2.5));
 			fb.performLayout(getLocalBounds().toFloat());
+		}
+		void setEnableState(bool state)
+		{
+			btnDestFolder.setEnabled(state);
+			btnRunProcess.setEnabled(state);
+			sldLUFSTarget.setEnabled(state);
+			sldLimiterCeiling.setEnabled(state);
 		}
 
 		Colour backgroundColour;

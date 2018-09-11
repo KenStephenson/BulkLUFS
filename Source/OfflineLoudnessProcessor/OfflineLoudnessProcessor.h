@@ -21,6 +21,7 @@ class TimerListener
 		~TimerListener() {};
 		virtual void handleTimerTick() {};
 };
+
 class PulseTimer : public Timer
 {
 	public:
@@ -39,57 +40,60 @@ class PulseTimer : public Timer
 		TimerListener* listener;
 };
 
-//class OfflineLoudnessProcessor : public ThreadWithProgressWindow, public TimerListener
-class OfflineLoudnessProcessor : public TimerListener
+class OfflineLoudnessProcessor : public Thread, public TimerListener
 {
 	public:
-		OfflineLoudnessProcessor()	/* : ThreadWithProgressWindow("Processing...", true, true)*/
-		{
-		}
+		OfflineLoudnessProcessor(String threadName, float _dBLufsTarget, float _dbLimiterCeiling, 
+			FileLoudnessDetails* _fileDetails, File _destinationFolder, bool _writeFile);
+
 		~OfflineLoudnessProcessor();
-		void run(float dBLufsTarget, FileListBoxModel fileList, File destinationFolder);
 
-private:
-#pragma region Process Methods and Parameters
-		void processNextFile();
-		void handleTimerTick() override;
-		void runPostProcess();
-		void applyGain(AudioSampleBuffer* audioBuffer);
-		void applyBrickwallLimiter(AudioSampleBuffer* audioBuffer);
-		void readPostProcessLoudness();
-		void writeOutputFile(AudioSampleBuffer* audioBuffer);
-		bool loadFileFromDisk(File srcFile);
-		void loadLimiterPlugin();
+		void run() override;
 
+	private:
 		AudioFormatManager formatManager;
 		MidiBuffer midiBuffer;
 		std::unique_ptr<AudioFormatReaderSource> readerSource;
+		std::unique_ptr<AudioSampleBuffer> audioBuffer;
 		std::unique_ptr<Ebu128LoudnessMeter> preProcessLoudnessMeter;
 		std::unique_ptr<Ebu128LoudnessMeter> postProcessLoudnessMeter;
-		std::unique_ptr<AudioSampleBuffer> audioBuffer;
+		std::shared_ptr<AudioProcessor> limiterPlugin;
 		std::unique_ptr<PulseTimer> timer;
 
-		std::shared_ptr<AudioProcessor> limiterPlugin;
 		const String limiterPluginName = "George Yohng's W1 Limiter x64";
-
 		float dBLufsTarget;
 		float dBLimiterCeiling;
 		double fileSampleRate;
 		double fileBitsPerSample;
-		int64 fileTotalLength;
-		int64 fileGetNextReadPosition;
-		int expectedRequestRate = 10;
+
+		int pulseTimerHz = 200;
 		int samplesPerBlock = 44100;
 		int bufferPointer = 0;
 		int64 numSamples = 0;
 		int64 numChannels = 0;
-		bool isPostProcess = false;
 
-		FileListBoxModel fileListModel;
-		Array<FileLoudnessDetails> inputFiles;
-		int activeIndex;
-		File activeFile;
+		enum ProcessStep
+		{
+			None = 0,
+			InitialLoudness = 1,
+			BrickwallLimiter = 2,
+			PostProcessLoudness = 3
+		};
+		ProcessStep currentProcessStep = ProcessStep::None;
+		FileLoudnessDetails* fileDetails;
 		File destinationFolder;
+		bool writeFile = false;
 
-#pragma endregion
+		void startProcess();
+		void initialiseTimer(ProcessStep _processStep);
+		void handleTimerTick() override;
+		void processAudioBuffer(int bufferSize);
+		void scanComplete();
+		void applyGain();
+		void writeOutputFile();
+		bool loadFileFromDisk(File srcFile);
+		void loadLimiterPlugin();
+		void initialiseBrickwallLimiter();
+
+
 };
