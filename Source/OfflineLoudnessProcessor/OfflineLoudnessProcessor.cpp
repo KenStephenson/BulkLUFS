@@ -175,7 +175,7 @@ void OfflineLoudnessProcessor::writeOutputFile(AudioSampleBuffer* audioBuffer)
 
 	FileOutputStream* fos = new FileOutputStream(wavFile);
 	WavAudioFormat wavFormat;
-	ScopedPointer<AudioFormatWriter> afw(wavFormat.createWriterFor(fos, fileSampleRate, audioBuffer->getNumChannels(), bitsPerSample, StringPairArray(), 0));
+	ScopedPointer<AudioFormatWriter> afw(wavFormat.createWriterFor(fos, fileSampleRate, audioBuffer->getNumChannels(), fileBitsPerSample, StringPairArray(), 0));
 	afw->writeFromAudioSampleBuffer(*audioBuffer, 0, audioBuffer->getNumSamples());
 }
 #pragma endregion
@@ -191,11 +191,11 @@ bool OfflineLoudnessProcessor::loadFileFromDisk(File srcFile)
 
 		fileTotalLength = readerSource->getTotalLength();
 		fileSampleRate = reader->sampleRate;
-		bitsPerSample = reader->bitsPerSample;
+		fileBitsPerSample = reader->bitsPerSample;
 		return true;
 	}
 	fileSampleRate = 0;
-	bitsPerSample = 0;
+	fileBitsPerSample = 0;
 	return false;
 }
 void OfflineLoudnessProcessor::loadLimiterPlugin()

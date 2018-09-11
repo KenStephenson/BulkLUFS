@@ -79,13 +79,14 @@ class MainComponent : public Component, public ListBoxModelListener, public Time
 		double fileBitsPerSample;
 		int activeIndex;
 		FileLoudnessDetails* activeFile;
-		int expectedRequestRate = 10;
+		int pulseTimerHz = 200;
 		int samplesPerBlock = 44100;
 		int bufferPointer = 0;
 		int64 numSamples = 0;
 		int64 numChannels = 0;
 		bool isPostProcess = false;
 		bool writeFile = false;
+
 		void runProcess();
 		void processNextFile();
 		void handleTimerTick() override;

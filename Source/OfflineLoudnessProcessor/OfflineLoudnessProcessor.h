@@ -75,7 +75,7 @@ private:
 		float dBLufsTarget;
 		float dBLimiterCeiling;
 		double fileSampleRate;
-		double bitsPerSample;
+		double fileBitsPerSample;
 		int64 fileTotalLength;
 		int64 fileGetNextReadPosition;
 		int expectedRequestRate = 10;

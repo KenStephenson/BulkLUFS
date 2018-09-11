@@ -63,22 +63,22 @@ class FileListBoxModel : public TableListBoxModel
 				g.drawText(row->file.getFileName(), r, Justification::centredLeft);
 				break;
 			case 2:
-				g.drawText(std::to_string(row->preIntegratedLufs), r, Justification::centredRight);
+				g.drawText(String(row->preIntegratedLufs, 2), r, Justification::centredRight);
 				break;
 			case 3:
-				g.drawText(std::to_string(row->prePeakDbfs), r, Justification::centredRight);
+				g.drawText(String(row->prePeakDbfs, 2), r, Justification::centredRight);
 				break;
 			case 4:
-				g.drawText(std::to_string(row->diffLufs), r, Justification::centredRight);
+				g.drawText(String(row->diffLufs, 2), r, Justification::centredRight);
 				break;
 			case 5:
-				g.drawText(std::to_string(row->gain), r, Justification::centredRight);
+				g.drawText(String(row->gain, 2), r, Justification::centredRight);
 				break;
 			case 6:
-				g.drawText(std::to_string(row->postIntegratedLufs), r, Justification::centredRight);
+				g.drawText(String(row->postIntegratedLufs, 2), r, Justification::centredRight);
 				break;
 			case 7:
-				g.drawText(std::to_string(row->postPeakDbfs), r, Justification::centredRight);
+				g.drawText(String(row->postPeakDbfs, 2), r, Justification::centredRight);
 				break;
 			default:
 				break;

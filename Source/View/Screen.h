@@ -69,7 +69,7 @@ class InputPanel : public Component
 
 			backgroundColour = ColourFactory::getColour(theme::PANEL_BK_COLOUR);
 
-			btnAddFiles.setButtonText("1 - Add Files");
+			btnAddFiles.setButtonText("1 - ADD FILES");
 			btnAddFiles.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
 			btnAddFiles.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 			btnAddFiles.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
@@ -81,12 +81,12 @@ class InputPanel : public Component
 			addAndMakeVisible(&listInputFiles);
 
 			listInputFiles.getHeader().addColumn("File", 1, 200, TableHeaderComponent::defaultFlags);
-			listInputFiles.getHeader().addColumn("pre LUFS", 2, 80, TableHeaderComponent::defaultFlags);
-			listInputFiles.getHeader().addColumn("pre Peak dB", 3, 80, TableHeaderComponent::defaultFlags);
-			listInputFiles.getHeader().addColumn("diff", 4, 80, TableHeaderComponent::defaultFlags);
-			listInputFiles.getHeader().addColumn("gain", 5, 80, TableHeaderComponent::defaultFlags);
-			listInputFiles.getHeader().addColumn("post LUFS", 6, 80, TableHeaderComponent::defaultFlags);
-			listInputFiles.getHeader().addColumn("post Peak dB", 7, 80, TableHeaderComponent::defaultFlags);
+			listInputFiles.getHeader().addColumn("pre LUFS", 2, 70, TableHeaderComponent::defaultFlags);
+			listInputFiles.getHeader().addColumn("pre Peak dB", 3, 70, TableHeaderComponent::defaultFlags);
+			listInputFiles.getHeader().addColumn("diff", 4, 70, TableHeaderComponent::defaultFlags);
+			listInputFiles.getHeader().addColumn("gain", 5, 70, TableHeaderComponent::defaultFlags);
+			listInputFiles.getHeader().addColumn("post LUFS", 6, 70, TableHeaderComponent::defaultFlags);
+			listInputFiles.getHeader().addColumn("post Peak dB", 7, 70, TableHeaderComponent::defaultFlags);
 		}
 		~InputPanel()
 		{
@@ -130,7 +130,7 @@ class ControlsPanel : public Component
 
 			backgroundColour = ColourFactory::getColour(theme::PANEL_BK_COLOUR);
 
-			btnDestFolder.setButtonText("2 - Select Output Folder");
+			btnDestFolder.setButtonText("2 - SELECT OUTPUT FOLDER");
 			btnDestFolder.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
 			btnDestFolder.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 			btnDestFolder.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));

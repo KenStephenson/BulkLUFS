@@ -172,18 +172,16 @@ void MainComponent::processNextFile()
 		audioBuffer = std::make_unique<AudioSampleBuffer>(numChannels, numSamples);
 		fmtReader->read(audioBuffer.get(), 0, numSamples, 0, true, true);
 
-		expectedRequestRate = 10;
 		samplesPerBlock = fmtReader->sampleRate;
-
 		preProcessLoudnessMeter->reset();
-		preProcessLoudnessMeter->prepareToPlay(numSamples, 2, samplesPerBlock, expectedRequestRate);
+		preProcessLoudnessMeter->prepareToPlay(numSamples, 2, samplesPerBlock, pulseTimerHz);
 
 		postProcessLoudnessMeter->reset();
-		postProcessLoudnessMeter->prepareToPlay(numSamples, 2, samplesPerBlock, expectedRequestRate);
+		postProcessLoudnessMeter->prepareToPlay(numSamples, 2, samplesPerBlock, pulseTimerHz);
 
 		isPostProcess = false;
 		bufferPointer = 0;
-		timer.get()->startTimerHz(1000.0f);
+		timer.get()->startTimerHz(pulseTimerHz);
 	}
 }
 
@@ -284,7 +282,7 @@ void MainComponent::applyBrickwallLimiter()
 void MainComponent::readPostProcessLoudness()
 {
 	bufferPointer = 0;
-	timer.get()->startTimerHz(1000.0f);
+	timer.get()->startTimerHz(pulseTimerHz);
 }
 void MainComponent::writeOutputFile()
 {
@@ -307,7 +305,7 @@ bool MainComponent::loadFileFromDisk(File srcFile)
 		readerSource->setLooping(false);
 
 		fileSampleRate = reader->sampleRate;
-		fileBitsPerSample = reader->fileBitsPerSample;
+		fileBitsPerSample = reader->bitsPerSample;
 		return true;
 	}
 	fileSampleRate = 0;
