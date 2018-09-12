@@ -88,7 +88,7 @@ void MainComponent::addFilesButtonClicked()
 }
 void MainComponent::destinationFolderButtonClicked()
 {
-	FileChooser chooser("Select output folder...", inputFolder, "*.*");
+	FileChooser chooser("Select output folder...", inputFolder, "*.wav");
 	if (chooser.browseForDirectory())
 	{
 		destinationFolder = chooser.getResult();
