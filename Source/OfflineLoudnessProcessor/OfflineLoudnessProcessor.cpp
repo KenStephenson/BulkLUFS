@@ -209,17 +209,31 @@ void OfflineLoudnessProcessor::loadLimiterPlugin()
 	{
 		currentPlugBeingScanned = scanner->getNextPluginFileThatWillBeScanned();
 		File f(currentPlugBeingScanned);
-		String testStr = f.getFileNameWithoutExtension();
-		if (testStr == limiterPluginName)
+		String plugName = f.getFileNameWithoutExtension();
+		if (plugName == limiterPluginName || plugName == limiterPluginName64)
 		{
 			scanner->scanNextFile(true, currentPlugBeingScanned);
-			break;
 		}
-		scanner->skipNextFile();
+		else
+		{
+			scanner->skipNextFile();
+		}
 	}
-	if (knownPluginList.getNumTypes() > 0)
+	int numTypes = knownPluginList.getNumTypes();
+	PluginDescription* plugIn = nullptr;
+	switch (numTypes)
 	{
-		PluginDescription* plugIn = knownPluginList.getType(0);
+		case 1:
+			plugIn = knownPluginList.getType(0);
+			break;
+		case 2:
+			PluginDescription* plugIn1 = knownPluginList.getType(0);
+			PluginDescription* plugIn2 = knownPluginList.getType(1);
+			plugIn = plugIn1->name.contains("x64") ? plugIn1 : plugIn2;
+			break;
+	}
+	if (plugIn != nullptr)
+	{
 		AudioPluginFormatManager fm;
 		fm.addDefaultFormats();
 		String ignore;

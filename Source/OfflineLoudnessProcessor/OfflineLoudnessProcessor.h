@@ -59,7 +59,8 @@ class OfflineLoudnessProcessor : public Thread, public TimerListener
 		std::shared_ptr<AudioProcessor> limiterPlugin;
 		std::unique_ptr<PulseTimer> timer;
 
-		const String limiterPluginName = "George Yohng's W1 Limiter x64";
+		const String limiterPluginName = "George Yohng's W1 Limiter";
+		const String limiterPluginName64 = "George Yohng's W1 Limiter x64";
 
 		OfflineLoudnessScanDataPacket* scanItem;
 		float dBLufsTarget;
