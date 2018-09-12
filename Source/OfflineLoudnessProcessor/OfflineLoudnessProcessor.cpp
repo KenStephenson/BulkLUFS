@@ -10,13 +10,13 @@
 
 #include "OfflineLoudnessProcessor.h"
 
-OfflineLoudnessProcessor::OfflineLoudnessProcessor(FileLoudnessDetails* _fileDetails)
-	: Thread("LUFSScan"),
-	fileDetails(_fileDetails),
-	dBLufsTarget(_fileDetails->dBLufsTarget),
-	dBLimiterCeiling(_fileDetails->dBLimiterCeiling),
-	destinationFolder(_fileDetails->destinationFolder),
-	writeFile(_fileDetails->writeFile)
+OfflineLoudnessProcessor::OfflineLoudnessProcessor(OfflineLoudnessScanDataPacket* _scanItem)
+	: Thread("LUFSScan"), 
+	scanItem(_scanItem), 
+	dBLufsTarget(_scanItem->dBLufsTarget), 
+	dBLimiterCeiling(_scanItem->dBLimiterCeiling), 
+	destinationFolder(_scanItem->destinationFolder), 
+	writeFile(_scanItem->writeFile)
 {
 };
 
@@ -37,20 +37,20 @@ void OfflineLoudnessProcessor::run()
 	startProcess();
 
 	// loop until it is called to stop
-	while (!threadShouldExit())
+	while (!threadShouldExit()) 
 	{
-		//sleep(5);
 	}
-	if (timer->isTimerRunning())
-	{
-		timer->stopTimer();
-	}
+
+	//if (timer->isTimerRunning())
+	//{
+	//	timer->stopTimer();
+	//}
 }
 
 
 void OfflineLoudnessProcessor::startProcess()
 {
-	if (loadFileFromDisk(fileDetails->file))
+	if (loadFileFromDisk(scanItem->file))
 	{
 		AudioFormatReader* fmtReader = readerSource->getAudioFormatReader();
 		numSamples = fmtReader->lengthInSamples;
@@ -60,14 +60,16 @@ void OfflineLoudnessProcessor::startProcess()
 		fmtReader->read(audioBuffer.get(), 0, numSamples, 0, true, true);
 
 		samplesPerBlock = fmtReader->sampleRate;
-		preProcessLoudnessMeter->reset();
+		preProcessLoudnessMeter->setFreezeLoudnessRangeOnSilence(true);
 		preProcessLoudnessMeter->prepareToPlay(numSamples, 2, samplesPerBlock, pulseTimerHz);
+		preProcessLoudnessMeter->reset();
 
 		initialiseBrickwallLimiter();
 		limiterPlugin->prepareToPlay(samplesPerBlock, numSamples);
 
-		postProcessLoudnessMeter->reset();
+		postProcessLoudnessMeter->setFreezeLoudnessRangeOnSilence(true);
 		postProcessLoudnessMeter->prepareToPlay(numSamples, 2, samplesPerBlock, pulseTimerHz);
+		postProcessLoudnessMeter->reset();
 
 		initialiseTimer(ProcessStep::InitialLoudness);
 	}
@@ -78,7 +80,6 @@ void OfflineLoudnessProcessor::initialiseTimer(ProcessStep _processStep)
 	bufferPointer = 0;
 	timer.get()->startTimerHz(pulseTimerHz);
 }
-
 void OfflineLoudnessProcessor::handleTimerTick()
 {
 	if (bufferPointer > numSamples - samplesPerBlock)
@@ -93,7 +94,6 @@ void OfflineLoudnessProcessor::handleTimerTick()
 		bufferPointer += samplesPerBlock;
 	}
 }
-
 void OfflineLoudnessProcessor::processAudioBuffer(int bufferSize)
 {
 	AudioSampleBuffer workBuffer(numChannels, bufferSize);
@@ -122,9 +122,6 @@ void OfflineLoudnessProcessor::scanComplete()
 			// This called after the Initial Loudness scan
 			// Start the Post Processing
 			// the Post Process Loudness scan will restart the timer and will finalise in this runPostProcessing
-			fileDetails->preIntegratedLufs = preProcessLoudnessMeter->getIntegratedLoudness();
-			fileDetails->prePeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, numSamples));
-
 			applyGain();
 			initialiseTimer(ProcessStep::BrickwallLimiter);
 			break;
@@ -136,8 +133,7 @@ void OfflineLoudnessProcessor::scanComplete()
 		case ProcessStep::PostProcessLoudness:
 			// This called after the Post Processing has been done
 			// Finalise and call the next file
-			fileDetails->postIntegratedLufs = postProcessLoudnessMeter->getIntegratedLoudness();
-			fileDetails->postPeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, numSamples));
+			updateScanItem();
 
 			if (writeFile)
 			{
@@ -149,19 +145,34 @@ void OfflineLoudnessProcessor::scanComplete()
 	};
 
 }
+void OfflineLoudnessProcessor::updateScanItem()
+{
+	scanItem->preIntegratedLufs = preProcessLoudnessMeter->getIntegratedLoudness();
+	scanItem->prePeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, numSamples));
+	scanItem->postIntegratedLufs = postProcessLoudnessMeter->getIntegratedLoudness();
+	scanItem->postPeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, numSamples));
+	scanItem->postShortTermLoudness = postProcessLoudnessMeter->getShortTermLoudness();
+	scanItem->postMaximumShortTermLoudness = postProcessLoudnessMeter->getMaximumShortTermLoudness();
+	scanItem->postMomentaryLoudness = postProcessLoudnessMeter->getMomentaryLoudness();
+	scanItem->postMaximumMomentaryLoudness = postProcessLoudnessMeter->getMaximumMomentaryLoudness();
+	scanItem->postLoudnessRangeStart = postProcessLoudnessMeter->getLoudnessRangeStart();
+	scanItem->postLoudnessRangeEnd = postProcessLoudnessMeter->getLoudnessRangeEnd();
+	scanItem->postLoudnessRange = postProcessLoudnessMeter->getLoudnessRange();
+}
+
 void OfflineLoudnessProcessor::applyGain()
 {
 	float fileDbLufs = preProcessLoudnessMeter->getIntegratedLoudness();
 	float dbDifference = (fileDbLufs * -1) - (dBLufsTarget * -1);
 	float gainFactor = Decibels::decibelsToGain(dbDifference);
-	fileDetails->diffLufs = dbDifference;
-	fileDetails->gain = gainFactor;
+	scanItem->diffLufs = dbDifference;
+	scanItem->gain = gainFactor;
 	audioBuffer->applyGain(gainFactor);
 }
 
 void OfflineLoudnessProcessor::writeOutputFile()
 {
-	File wavFile = destinationFolder.getChildFile(fileDetails->file.getFileName());
+	File wavFile = destinationFolder.getChildFile(scanItem->file.getFileName());
 	wavFile.deleteFile();
 
 	FileOutputStream* fos = new FileOutputStream(wavFile);
@@ -222,7 +233,7 @@ void OfflineLoudnessProcessor::initialiseBrickwallLimiter()
 	limiterPlugin->setNonRealtime(true);
 	limiterPlugin->setParameter(0, dbFS);	// Threshold
 	limiterPlugin->setParameter(1, dbFS);	// Ceiling
-	limiterPlugin->setParameter(2, 200.0f);	// Release
+	limiterPlugin->setParameter(2, 20.0f);	// Release
 	limiterPlugin->setParameter(3, false);	// Auto Release
 }
 

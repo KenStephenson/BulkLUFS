@@ -13,6 +13,7 @@
 #include "../View/FileListBoxModel.h"
 #include "../VstHost/PluginWrapperProcessor.h"
 #include"../EBU-R128/Ebu128LoudnessMeter.h"
+#include "./OfflineLoudnessScanDataPacket.h"
 
 class TimerListener
 {
@@ -43,8 +44,7 @@ class PulseTimer : public Timer
 class OfflineLoudnessProcessor : public Thread, public TimerListener
 {
 	public:
-		OfflineLoudnessProcessor(FileLoudnessDetails* _fileDetails);
-
+		OfflineLoudnessProcessor(OfflineLoudnessScanDataPacket* _fileDetails);
 		~OfflineLoudnessProcessor();
 
 		void run() override;
@@ -60,10 +60,14 @@ class OfflineLoudnessProcessor : public Thread, public TimerListener
 		std::unique_ptr<PulseTimer> timer;
 
 		const String limiterPluginName = "George Yohng's W1 Limiter x64";
+
+		OfflineLoudnessScanDataPacket* scanItem;
 		float dBLufsTarget;
 		float dBLimiterCeiling;
 		double fileSampleRate;
 		double fileBitsPerSample;
+		File destinationFolder;
+		bool writeFile = false;
 
 		int pulseTimerHz = 200;
 		int samplesPerBlock = 44100;
@@ -79,20 +83,17 @@ class OfflineLoudnessProcessor : public Thread, public TimerListener
 			PostProcessLoudness = 3
 		};
 		ProcessStep currentProcessStep = ProcessStep::None;
-		FileLoudnessDetails* fileDetails;
-		File destinationFolder;
-		bool writeFile = false;
 
 		void startProcess();
 		void initialiseTimer(ProcessStep _processStep);
 		void handleTimerTick() override;
 		void processAudioBuffer(int bufferSize);
 		void scanComplete();
+		void updateScanItem();
 		void applyGain();
 		void writeOutputFile();
 		bool loadFileFromDisk(File srcFile);
 		void loadLimiterPlugin();
 		void initialiseBrickwallLimiter();
-
-
 };
+

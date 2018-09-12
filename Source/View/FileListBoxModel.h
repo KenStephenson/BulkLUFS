@@ -10,27 +10,8 @@
 
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
-class FileLoudnessDetails
-{
-	public:
-		FileLoudnessDetails() {}
-		FileLoudnessDetails(int rNo, File f) : rowNo(rNo), file(f) {}
-		~FileLoudnessDetails() {}
+#include "../OfflineLoudnessProcessor/OfflineLoudnessScanDataPacket.h"
 
-		int rowNo = 0;
-		File file;
-		File destinationFolder;
-		float dBLufsTarget;
-		float dBLimiterCeiling;
-		bool writeFile = false;
-
-		float preIntegratedLufs = 0;
-		float prePeakDbfs = 0;
-		float diffLufs = 0;
-		float gain = 0;
-		float postIntegratedLufs = 0;
-		float postPeakDbfs = 0;
-};
 
 class ListBoxModelListener
 {
@@ -61,7 +42,7 @@ class FileListBoxModel : public TableListBoxModel
 		void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override
 		{
 			Rectangle<int> r(width, height);
-			FileLoudnessDetails* row = data[rowNumber];
+			OfflineLoudnessScanDataPacket* row = data[rowNumber];
 			switch (columnId)
 			{
 			case 1:
@@ -99,7 +80,7 @@ class FileListBoxModel : public TableListBoxModel
 		}
 
 		
-		OwnedArray<FileLoudnessDetails> data;
+		OwnedArray<OfflineLoudnessScanDataPacket> data;
 		ListBoxModelListener* listener;
 		String tag;
 };

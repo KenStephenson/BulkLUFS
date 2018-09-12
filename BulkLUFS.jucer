@@ -27,6 +27,10 @@
               file="Source/OfflineLoudnessProcessor/OfflineLoudnessProcessor.cpp"/>
         <FILE id="pCKYQp" name="OfflineLoudnessProcessor.h" compile="0" resource="0"
               file="Source/OfflineLoudnessProcessor/OfflineLoudnessProcessor.h"/>
+        <FILE id="YjUb4X" name="OfflineLoudnessScanItem.h" compile="0" resource="0"
+              file="Source/OfflineLoudnessProcessor/OfflineLoudnessScanItem.h"/>
+        <FILE id="EHWGpJ" name="OfflineLoudnessScanManager.h" compile="0" resource="0"
+              file="Source/OfflineLoudnessProcessor/OfflineLoudnessScanManager.h"/>
       </GROUP>
       <GROUP id="{64BA5795-5395-AE6C-250B-03A075D0E047}" name="EBU-R128">
         <GROUP id="{166E06E5-A441-D607-C2F4-B3B95C15FB34}" name="filters">

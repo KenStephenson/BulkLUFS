@@ -75,7 +75,10 @@ void MainComponent::addFilesButtonClicked()
 		for (int i = 0; i < chooser.getResults().size(); i++)
 		{
 			File f = chooser.getResults()[i];
-			inputListModel->data.add(new FileLoudnessDetails(i, f));
+			OfflineLoudnessScanDataPacket* scanData = new OfflineLoudnessScanDataPacket();
+			scanData->rowNo = i;
+			scanData->file = f;
+			inputListModel->data.add(scanData);
 		}
 		inputFolder = inputListModel->data[0]->file.getParentDirectory();
 	}
@@ -100,6 +103,9 @@ void MainComponent::runProcessButtonClicked()
 }
 bool MainComponent::validateProcessorParameters()
 {
+	dBLufsTarget = (float)mainPanel.sldLUFSTarget.getValue();
+	dBLimiterCeiling = (float)mainPanel.sldLimiterCeiling.getValue() / 2;
+
 	if (inputListModel->getNumRows() == 0)
 	{
 		AlertWindow dlg("Parameter Error", "No Input Files", AlertWindow::AlertIconType::WarningIcon);
@@ -125,7 +131,7 @@ void MainComponent::updateProgressPercentage()
 	double percent = 0;
 	if (inputListModel->getNumRows() > 0)
 	{
-		percent = ((double)activeIndex / (double)inputListModel->getNumRows());
+		percent = ((double)activeScanIndex / (double)inputListModel->getNumRows());
 	}
 	mainPanel.progressValue = percent;
 }
@@ -138,44 +144,37 @@ void MainComponent::runProcess()
 	{
 		return;
 	}
-	dBLufsTarget = mainPanel.sldLUFSTarget.getValue();
-	dBLimiterCeiling = mainPanel.sldLimiterCeiling.getValue();
 	leftPanel.setEnableState(false);
 	mainPanel.setEnableState(false);
-	activeIndex = 0;
-	startProcess();
+
+	activeScanIndex = 0;
+	startNextLoudnessScan();
 }
-void MainComponent::startProcess()
+void MainComponent::startNextLoudnessScan()
 {
-	if (activeIndex >= inputListModel->data.size())
+	if (activeScanIndex >= inputListModel->data.size())
 	{
 		// completed
 		updateProgressPercentage();
 		leftPanel.setEnableState(true);
 		mainPanel.setEnableState(true);
-		if (scanThread != nullptr && scanThread->isThreadRunning())
-		{
-			scanThread->stopThread(100);
-		}
 		return;
 	}
-	activeFileDetail = inputListModel->data[activeIndex];
-	activeFileDetail->dBLufsTarget = dBLufsTarget;
-	activeFileDetail->dBLimiterCeiling = dBLimiterCeiling;
-	activeFileDetail->destinationFolder = destinationFolder;
-	activeFileDetail->writeFile = writeFile;
-
 	updateProgressPercentage();
 
-	scanThread = std::make_unique<OfflineLoudnessProcessor>(activeFileDetail);
-	scanThread->addListener(this);
-	scanThread->startThread();
+	activeScanItem = inputListModel->data[activeScanIndex];
+	activeScanItem->dBLufsTarget = dBLufsTarget;
+	activeScanItem->dBLimiterCeiling = dBLimiterCeiling;
+	activeScanItem->destinationFolder = destinationFolder;
+	activeScanItem->writeFile = writeFile;
+
+	scanMgr = std::make_unique<OfflineLoudnessScanManager>();
+	scanMgr->runScan(activeScanItem, this);
 }
 
-void MainComponent::exitSignalSent()
+void MainComponent::ScanCompleted()
 {
-	leftPanel.listInputFiles.repaintRow(activeFileDetail->rowNo);
-	scanThread->removeListener(this);
-	activeIndex++;
-	startProcess();
+	leftPanel.listInputFiles.repaintRow(activeScanItem->rowNo);
+	activeScanIndex++;
+	startNextLoudnessScan();
 }

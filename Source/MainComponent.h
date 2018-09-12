@@ -11,7 +11,8 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "./View/Screen.h"
 #include "./View/FileListBoxModel.h"
-#include "./OfflineLoudnessProcessor/OfflineLoudnessProcessor.h"
+#include "./OfflineLoudnessProcessor/OfflineLoudnessScanDataPacket.h"
+#include "./OfflineLoudnessProcessor/OfflineLoudnessScanManager.h"
 
 //==============================================================================
 /*
@@ -19,7 +20,7 @@
     your controls and content.
 */
 
-class MainComponent : public Component, public ListBoxModelListener, public Thread::Listener, public TimerListener
+class MainComponent : public Component, public ListBoxModelListener, public ScanListener
 {
 	public:
 		using Track = Grid::TrackInfo;
@@ -36,18 +37,18 @@ class MainComponent : public Component, public ListBoxModelListener, public Thre
 		#pragma region Process Methods and Parameters
 		const String tagInputList = "INPUT";
 		std::unique_ptr<FileListBoxModel> inputListModel = nullptr;
-		std::unique_ptr<OfflineLoudnessProcessor> scanThread = nullptr;
-
-		int activeIndex;
-		FileLoudnessDetails* activeFileDetail;
+		std::unique_ptr<OfflineLoudnessScanManager> scanMgr = nullptr;
+		OfflineLoudnessScanDataPacket* activeScanItem;
+		
 		float dBLufsTarget;
 		float dBLimiterCeiling;
 		bool writeFile = false;
+		int activeScanIndex;
 
 		bool validateProcessorParameters();
 		void runProcess();
-		void startProcess();
-		void exitSignalSent() override;
+		void startNextLoudnessScan();
+		void ScanCompleted() override;
 		#pragma endregion
 
 		#pragma region User Interface Parameters
