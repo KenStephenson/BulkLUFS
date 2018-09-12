@@ -56,7 +56,7 @@ void OfflineLoudnessProcessor::startProcess()
 		numSamples = fmtReader->lengthInSamples;
 		numChannels = fmtReader->numChannels;
 
-		audioBuffer = std::make_unique<AudioSampleBuffer>(numChannels, numSamples);
+		audioBuffer = std::make_unique<AudioSampleBuffer>((int)numChannels, (int)numSamples);
 		fmtReader->read(audioBuffer.get(), 0, numSamples, 0, true, true);
 
 		samplesPerBlock = fmtReader->sampleRate;
@@ -122,6 +122,9 @@ void OfflineLoudnessProcessor::scanComplete()
 			// This called after the Initial Loudness scan
 			// Start the Post Processing
 			// the Post Process Loudness scan will restart the timer and will finalise in this runPostProcessing
+			scanItem->preIntegratedLufs = preProcessLoudnessMeter->getIntegratedLoudness();
+			scanItem->prePeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, numSamples));
+
 			applyGain();
 			initialiseTimer(ProcessStep::BrickwallLimiter);
 			break;
@@ -133,7 +136,15 @@ void OfflineLoudnessProcessor::scanComplete()
 		case ProcessStep::PostProcessLoudness:
 			// This called after the Post Processing has been done
 			// Finalise and call the next file
-			updateScanItem();
+			scanItem->postIntegratedLufs = postProcessLoudnessMeter->getIntegratedLoudness();
+			scanItem->postPeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, numSamples));
+			scanItem->postShortTermLoudness = postProcessLoudnessMeter->getShortTermLoudness();
+			scanItem->postMaximumShortTermLoudness = postProcessLoudnessMeter->getMaximumShortTermLoudness();
+			scanItem->postMomentaryLoudness = postProcessLoudnessMeter->getMomentaryLoudness();
+			scanItem->postMaximumMomentaryLoudness = postProcessLoudnessMeter->getMaximumMomentaryLoudness();
+			scanItem->postLoudnessRangeStart = postProcessLoudnessMeter->getLoudnessRangeStart();
+			scanItem->postLoudnessRangeEnd = postProcessLoudnessMeter->getLoudnessRangeEnd();
+			scanItem->postLoudnessRange = postProcessLoudnessMeter->getLoudnessRange();
 
 			if (writeFile)
 			{
@@ -144,20 +155,6 @@ void OfflineLoudnessProcessor::scanComplete()
 			break;
 	};
 
-}
-void OfflineLoudnessProcessor::updateScanItem()
-{
-	scanItem->preIntegratedLufs = preProcessLoudnessMeter->getIntegratedLoudness();
-	scanItem->prePeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, numSamples));
-	scanItem->postIntegratedLufs = postProcessLoudnessMeter->getIntegratedLoudness();
-	scanItem->postPeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, numSamples));
-	scanItem->postShortTermLoudness = postProcessLoudnessMeter->getShortTermLoudness();
-	scanItem->postMaximumShortTermLoudness = postProcessLoudnessMeter->getMaximumShortTermLoudness();
-	scanItem->postMomentaryLoudness = postProcessLoudnessMeter->getMomentaryLoudness();
-	scanItem->postMaximumMomentaryLoudness = postProcessLoudnessMeter->getMaximumMomentaryLoudness();
-	scanItem->postLoudnessRangeStart = postProcessLoudnessMeter->getLoudnessRangeStart();
-	scanItem->postLoudnessRangeEnd = postProcessLoudnessMeter->getLoudnessRangeEnd();
-	scanItem->postLoudnessRange = postProcessLoudnessMeter->getLoudnessRange();
 }
 
 void OfflineLoudnessProcessor::applyGain()

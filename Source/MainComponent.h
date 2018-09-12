@@ -52,8 +52,8 @@ class MainComponent : public Component, public ListBoxModelListener, public Scan
 		#pragma endregion
 
 		#pragma region User Interface Parameters
-		InputPanel leftPanel;
-		ControlsPanel mainPanel;
+		ControlsPanel topPanel;
+		InputPanel fileTable;
 		File inputFolder;
 		File destinationFolder;
 

@@ -89,7 +89,6 @@ class OfflineLoudnessProcessor : public Thread, public TimerListener
 		void handleTimerTick() override;
 		void processAudioBuffer(int bufferSize);
 		void scanComplete();
-		void updateScanItem();
 		void applyGain();
 		void writeOutputFile();
 		bool loadFileFromDisk(File srcFile);

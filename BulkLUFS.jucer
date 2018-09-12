@@ -27,8 +27,8 @@
               file="Source/OfflineLoudnessProcessor/OfflineLoudnessProcessor.cpp"/>
         <FILE id="pCKYQp" name="OfflineLoudnessProcessor.h" compile="0" resource="0"
               file="Source/OfflineLoudnessProcessor/OfflineLoudnessProcessor.h"/>
-        <FILE id="YjUb4X" name="OfflineLoudnessScanItem.h" compile="0" resource="0"
-              file="Source/OfflineLoudnessProcessor/OfflineLoudnessScanItem.h"/>
+        <FILE id="v7yOQw" name="OfflineLoudnessScanDataPacket.h" compile="0"
+              resource="0" file="Source/OfflineLoudnessProcessor/OfflineLoudnessScanDataPacket.h"/>
         <FILE id="EHWGpJ" name="OfflineLoudnessScanManager.h" compile="0" resource="0"
               file="Source/OfflineLoudnessProcessor/OfflineLoudnessScanManager.h"/>
       </GROUP>

@@ -33,38 +33,40 @@ void MainComponent::paint (Graphics& g)
 
     // You can add your drawing code here!
 	g.setColour(Colours::black);
-	g.drawRect(leftPanel.getLocalBounds());
-	g.drawRect(mainPanel.getLocalBounds());
+	g.drawRect(topPanel.getLocalBounds());
+	g.drawRect(fileTable.getLocalBounds());
 }
 void MainComponent::resized()
 {
 	Grid grid;
-	using Track = Grid::TrackInfo;
 
-	grid.templateRows = { Track(1_fr) };
-	grid.templateColumns = { Track(3_fr), Track(1_fr) };
-	grid.items = { GridItem(leftPanel), GridItem(mainPanel), };
+	using Track = Grid::TrackInfo;
+	grid.rowGap = 6_px;
+	grid.columnGap = 6_px;
+	grid.templateRows = { Track(1_fr), Track(6_fr) };
+	grid.templateColumns = { Track(1_fr) };
+	grid.items = {GridItem(topPanel), GridItem(fileTable) };
 	grid.performLayout(getLocalBounds());
 }
 void MainComponent::initialiseUserInterface()
 {
 	inputListModel = std::make_unique<FileListBoxModel>();
 
-	addAndMakeVisible(leftPanel);
-	addAndMakeVisible(mainPanel);
+	addAndMakeVisible(topPanel);
+	addAndMakeVisible(fileTable);
 
-	leftPanel.btnAddFiles.onClick = [this] { addFilesButtonClicked(); };
-	mainPanel.btnDestFolder.onClick = [this] { destinationFolderButtonClicked(); };
-	mainPanel.btnRunProcess.onClick = [this] { runProcessButtonClicked(); };
+	topPanel.btnAddFiles.onClick = [this] { addFilesButtonClicked(); };
+	topPanel.btnDestFolder.onClick = [this] { destinationFolderButtonClicked(); };
+	topPanel.btnRunProcess.onClick = [this] { runProcessButtonClicked(); };
 
 	inputListModel.get()->setListener(this, tagInputList);
-	leftPanel.listInputFiles.setModel(inputListModel.get());
+	fileTable.listInputFiles.setModel(inputListModel.get());
 }
 void MainComponent::refreshFileTableModel(String tag)
 {
 	if (tag == tagInputList)
 	{
-		leftPanel.listInputFiles.updateContent();
+		fileTable.listInputFiles.updateContent();
 	}
 };
 void MainComponent::addFilesButtonClicked()
@@ -82,7 +84,7 @@ void MainComponent::addFilesButtonClicked()
 		}
 		inputFolder = inputListModel->data[0]->file.getParentDirectory();
 	}
-	leftPanel.listInputFiles.updateContent();
+	fileTable.listInputFiles.updateContent();
 }
 void MainComponent::destinationFolderButtonClicked()
 {
@@ -90,11 +92,11 @@ void MainComponent::destinationFolderButtonClicked()
 	if (chooser.browseForDirectory())
 	{
 		destinationFolder = chooser.getResult();
-		mainPanel.lblDestFolder.setText(destinationFolder.getFileNameWithoutExtension(), dontSendNotification);
+		topPanel.lblDestFolder.setText(destinationFolder.getFileNameWithoutExtension(), dontSendNotification);
 	}
 	else
 	{
-		mainPanel.lblDestFolder.setText(mainPanel.tagNoDestinationFolder, dontSendNotification);
+		topPanel.lblDestFolder.setText(topPanel.tagNoDestinationFolder, dontSendNotification);
 	}
 }
 void MainComponent::runProcessButtonClicked()
@@ -103,8 +105,8 @@ void MainComponent::runProcessButtonClicked()
 }
 bool MainComponent::validateProcessorParameters()
 {
-	dBLufsTarget = (float)mainPanel.sldLUFSTarget.getValue();
-	dBLimiterCeiling = (float)mainPanel.sldLimiterCeiling.getValue() / 2;
+	dBLufsTarget = (float)topPanel.sldLUFSTarget.getValue();
+	dBLimiterCeiling = (float)topPanel.sldLimiterCeiling.getValue() / 2;
 
 	if (inputListModel->getNumRows() == 0)
 	{
@@ -115,7 +117,7 @@ bool MainComponent::validateProcessorParameters()
 		return false;
 	}
 	
-	writeFile = mainPanel.lblDestFolder.getText() != mainPanel.tagNoDestinationFolder ? true : false;
+	writeFile = topPanel.lblDestFolder.getText() != topPanel.tagNoDestinationFolder ? true : false;
 	if (writeFile && destinationFolder == inputFolder)
 	{
 		AlertWindow dlg("Parameter Error", "Input and Output folders are the same", AlertWindow::AlertIconType::WarningIcon);
@@ -133,19 +135,18 @@ void MainComponent::updateProgressPercentage()
 	{
 		percent = ((double)activeScanIndex / (double)inputListModel->getNumRows());
 	}
-	mainPanel.progressValue = percent;
+	topPanel.progressValue = percent;
 }
 #pragma endregion
 
-//#pragma region Run Batch Audio Processing
+#pragma region Run Batch Audio Processing
 void MainComponent::runProcess()
 {
 	if (validateProcessorParameters() == false)
 	{
 		return;
 	}
-	leftPanel.setEnableState(false);
-	mainPanel.setEnableState(false);
+	topPanel.setEnableState(false);
 
 	activeScanIndex = 0;
 	startNextLoudnessScan();
@@ -155,9 +156,10 @@ void MainComponent::startNextLoudnessScan()
 	if (activeScanIndex >= inputListModel->data.size())
 	{
 		// completed
+		activeScanIndex = 0;
 		updateProgressPercentage();
-		leftPanel.setEnableState(true);
-		mainPanel.setEnableState(true);
+		scanMgr = nullptr;
+		topPanel.setEnableState(true);
 		return;
 	}
 	updateProgressPercentage();
@@ -174,7 +176,8 @@ void MainComponent::startNextLoudnessScan()
 
 void MainComponent::ScanCompleted()
 {
-	leftPanel.listInputFiles.repaintRow(activeScanItem->rowNo);
+	fileTable.listInputFiles.repaintRow(activeScanItem->rowNo);
 	activeScanIndex++;
 	startNextLoudnessScan();
 }
+#pragma endregion

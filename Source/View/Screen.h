@@ -10,54 +10,54 @@
 
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
-
-static class ColourFactory
+class ColourFactory
 {
-	public:
-		enum ThemeComponent
+public:
+	enum ThemeComponent
+	{
+		PANEL_BK_COLOUR = 0,
+		LABEL_BK_COLOUR = 1,
+		LABEL_TEXT_COLOUR = 2,
+		BUTTON_BK_COLOUR = 3,
+		BUTTON_TEXT_COLOUR = 4,
+		LIST_INPUTS_COLOUR = 5,
+		LIST_OUTLINE_COLOUR = 6,
+		LIST_OUTPUTS_COLOUR = 7,
+	};
+	static Colour getColour(ThemeComponent item)
+	{
+		Colour c;
+		switch (item)
 		{
-			PANEL_BK_COLOUR = 0,
-			LABEL_BK_COLOUR = 1,
-			LABEL_TEXT_COLOUR = 2,
-			BUTTON_BK_COLOUR = 3,
-			BUTTON_TEXT_COLOUR = 4,
-			LIST_INPUTS_COLOUR = 5,
-			LIST_OUTLINE_COLOUR = 6,
-			LIST_OUTPUTS_COLOUR = 7,
-		};
-		static Colour getColour(ThemeComponent item)
-		{
-			Colour c;
-			switch (item)
-			{
-			case ThemeComponent::PANEL_BK_COLOUR:
-				c = Colours::lightgrey;
-				break;
-			case ThemeComponent::LABEL_BK_COLOUR:
-				c = Colours::lightgrey;
-				break;
-			case ThemeComponent::LABEL_TEXT_COLOUR:
-				c = Colours::black;
-				break;
-			case ThemeComponent::BUTTON_BK_COLOUR:
-				c = Colours::slategrey;
-				break;
-			case ThemeComponent::BUTTON_TEXT_COLOUR:
-				c = Colours::white;
-				break;
-			case ThemeComponent::LIST_INPUTS_COLOUR:
-				c = Colours::aliceblue;
-				break;
-			case ThemeComponent::LIST_OUTPUTS_COLOUR:
-				c = Colours::lightgoldenrodyellow;
-				break;
-			case ThemeComponent::LIST_OUTLINE_COLOUR:
-				c = Colours::black;
-				break;
-			}
-			return c;
+		case ThemeComponent::PANEL_BK_COLOUR:
+			c = Colours::lightgrey;
+			break;
+		case ThemeComponent::LABEL_BK_COLOUR:
+			c = Colours::lightgrey;
+			break;
+		case ThemeComponent::LABEL_TEXT_COLOUR:
+			c = Colours::black;
+			break;
+		case ThemeComponent::BUTTON_BK_COLOUR:
+			c = Colours::slategrey;
+			break;
+		case ThemeComponent::BUTTON_TEXT_COLOUR:
+			c = Colours::white;
+			break;
+		case ThemeComponent::LIST_INPUTS_COLOUR:
+			c = Colours::aliceblue;
+			break;
+		case ThemeComponent::LIST_OUTPUTS_COLOUR:
+			c = Colours::lightgoldenrodyellow;
+			break;
+		case ThemeComponent::LIST_OUTLINE_COLOUR:
+			c = Colours::black;
+			break;
 		}
+		return c;
+	}
 };
+
 
 class InputPanel : public Component
 {
@@ -68,24 +68,21 @@ class InputPanel : public Component
 
 			backgroundColour = ColourFactory::getColour(theme::PANEL_BK_COLOUR);
 
-			btnAddFiles.setButtonText("1 - ADD FILES");
-			btnAddFiles.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
-			btnAddFiles.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
-			btnAddFiles.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
-
 			listInputFiles.setColour(ListBox::backgroundColourId, ColourFactory::getColour(theme::LIST_INPUTS_COLOUR));
 			listInputFiles.setColour(ListBox::outlineColourId, ColourFactory::getColour(theme::LIST_OUTLINE_COLOUR));
 
-			addAndMakeVisible(&btnAddFiles);
 			addAndMakeVisible(&listInputFiles);
-
+			const int colWIdth = 98;
 			listInputFiles.getHeader().addColumn("File", 1, 200, TableHeaderComponent::notSortable);
-			listInputFiles.getHeader().addColumn("In LUFS", 2, 70, TableHeaderComponent::notSortable);
-			listInputFiles.getHeader().addColumn("In Peak dB", 3, 70, TableHeaderComponent::notSortable);
-			listInputFiles.getHeader().addColumn("Diff LUFS", 4, 70, TableHeaderComponent::notSortable);
-			listInputFiles.getHeader().addColumn("Gain", 5, 70, TableHeaderComponent::notSortable);
-			listInputFiles.getHeader().addColumn("Out LUFS", 6, 70, TableHeaderComponent::notSortable);
-			listInputFiles.getHeader().addColumn("Out Peak dB", 7, 70, TableHeaderComponent::notSortable);
+			
+			listInputFiles.getHeader().addColumn("LUFS: In", 2, colWIdth, TableHeaderComponent::notSortable);
+			listInputFiles.getHeader().addColumn("Out", 3, colWIdth, TableHeaderComponent::notSortable);
+			listInputFiles.getHeader().addColumn("Difference", 4, colWIdth, TableHeaderComponent::notSortable);
+			listInputFiles.getHeader().addColumn("Range", 5, colWIdth, TableHeaderComponent::notSortable);
+			listInputFiles.getHeader().addColumn("Max Short Term", 6, colWIdth, TableHeaderComponent::notSortable);
+			listInputFiles.getHeader().addColumn("Gain [1=0dB]", 7, colWIdth, TableHeaderComponent::notSortable);
+			listInputFiles.getHeader().addColumn("Peak dBFS: In", 8, colWIdth, TableHeaderComponent::notSortable);
+			listInputFiles.getHeader().addColumn("Out", 9, colWIdth, TableHeaderComponent::notSortable);
 		}
 		~InputPanel()
 		{
@@ -103,7 +100,6 @@ class InputPanel : public Component
 			fbLeftPanel.justifyContent = FlexBox::JustifyContent::spaceBetween;
 			fbLeftPanel.flexDirection = FlexBox::Direction::column;
 
-			fbLeftPanel.items.add(FlexItem(btnAddFiles).withMinHeight(50.0f).withMaxHeight(50.0f).withMinWidth(50.0f).withFlex(1));
 			fbLeftPanel.items.add(FlexItem(listInputFiles).withMinHeight(550.0f).withMinWidth(50.0f).withFlex(1));
 
 			//==============================================================================
@@ -113,13 +109,7 @@ class InputPanel : public Component
 			fb.performLayout(getLocalBounds().toFloat());
 		}
 
-		void setEnableState(bool state)
-		{
-			btnAddFiles.setEnabled(state);
-		}
-
 		Colour backgroundColour;
-		TextButton btnAddFiles;
 		TableListBox listInputFiles;
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(InputPanel)
 };
@@ -132,6 +122,11 @@ class ControlsPanel : public Component
 			using theme = ColourFactory::ThemeComponent;
 
 			backgroundColour = ColourFactory::getColour(theme::PANEL_BK_COLOUR);
+
+			btnAddFiles.setButtonText("1 - ADD FILES");
+			btnAddFiles.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
+			btnAddFiles.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
+			btnAddFiles.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 
 			btnDestFolder.setButtonText("2 - SELECT OUTPUT FOLDER");
 			btnDestFolder.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
@@ -175,9 +170,7 @@ class ControlsPanel : public Component
 			progressBar = std::make_unique<ProgressBar>(progressValue);
 			progressBar->setPercentageDisplay(true);
 
-			listOutputFiles.setColour(ListBox::backgroundColourId, ColourFactory::getColour(theme::LIST_OUTPUTS_COLOUR));
-			listOutputFiles.setColour(ListBox::outlineColourId, ColourFactory::getColour(theme::LIST_OUTLINE_COLOUR));
-
+			addAndMakeVisible(&btnAddFiles);
 			addAndMakeVisible(&btnDestFolder);
 			addAndMakeVisible(&lblDestFolder);
 			addAndMakeVisible(&btnRunProcess);
@@ -186,8 +179,6 @@ class ControlsPanel : public Component
 			addAndMakeVisible(&lblLimiterCeiling);
 			addAndMakeVisible(&sldLimiterCeiling);
 			addAndMakeVisible(*progressBar.get());
-		
-			addAndMakeVisible(&listOutputFiles);
 		}
 		~ControlsPanel()
 		{
@@ -199,30 +190,24 @@ class ControlsPanel : public Component
 
 		void resized() override
 		{
-			//==============================================================================
-			FlexBox fbCentrePanel;
-			fbCentrePanel.flexWrap = FlexBox::Wrap::wrap;
-			fbCentrePanel.justifyContent = FlexBox::JustifyContent::center;
-			fbCentrePanel.flexDirection = FlexBox::Direction::column;
 
-			fbCentrePanel.items.add(FlexItem(btnDestFolder).withMinHeight(50.0f).withMaxHeight(50.0f).withMinWidth(100.0f).withFlex(1));
-			fbCentrePanel.items.add(FlexItem(lblDestFolder).withMinHeight(50.0f).withMaxHeight(50.0f).withMinWidth(100.0f).withFlex(1));
-			fbCentrePanel.items.add(FlexItem(btnRunProcess).withMinHeight(50.0f).withMaxHeight(50.0f).withMinWidth(100.0f).withFlex(1));
-			fbCentrePanel.items.add(FlexItem(lblLUFSTarget).withMinHeight(30.0f).withMaxHeight(30.0f).withMinWidth(100.0f).withFlex(1));
-			fbCentrePanel.items.add(FlexItem(sldLUFSTarget).withMinHeight(50.0f).withMaxHeight(50.0f).withMinWidth(100.0f).withFlex(1));
-			fbCentrePanel.items.add(FlexItem(lblLimiterCeiling).withMinHeight(30.0f).withMaxHeight(30.0f).withMinWidth(100.0f).withFlex(1));
-			fbCentrePanel.items.add(FlexItem(sldLimiterCeiling).withMinHeight(50.0f).withMaxHeight(50.0f).withMinWidth(100.0f).withFlex(1));
-			fbCentrePanel.items.add(FlexItem(*progressBar.get()).withMinHeight(30.0f).withMaxHeight(30.0f).withMinWidth(100.0f).withFlex(1));
-			fbCentrePanel.items.add(FlexItem(listOutputFiles).withMinHeight(200.0f).withMinWidth(100.0f).withFlex(1));
+			Grid grid;
+			using Track = Grid::TrackInfo;
+			grid.rowGap = 6_px;
+			grid.columnGap = 6_px;
 
-			//==============================================================================
-			FlexBox fb;
-			fb.flexWrap = FlexBox::Wrap::noWrap;
-			fb.items.add(FlexItem(fbCentrePanel).withFlex(2.5));
-			fb.performLayout(getLocalBounds().toFloat());
+			grid.templateRows = { Track(1_fr), Track(1_fr) };
+			grid.templateColumns = { Track(1_fr), Track(2_fr), Track(1_fr), Track(2_fr), Track(1_fr) };
+			grid.items = 
+			{ 
+				GridItem(lblLUFSTarget) , GridItem(sldLUFSTarget) , GridItem(lblLimiterCeiling) , GridItem(sldLimiterCeiling) , GridItem(*progressBar.get()),
+				GridItem(btnAddFiles), GridItem(nullptr), GridItem(btnDestFolder), GridItem(lblDestFolder), GridItem(btnRunProcess),
+			};
+			grid.performLayout(getLocalBounds());
 		}
 		void setEnableState(bool state)
 		{
+			btnAddFiles.setEnabled(state);
 			btnDestFolder.setEnabled(state);
 			btnRunProcess.setEnabled(state);
 			sldLUFSTarget.setEnabled(state);
@@ -230,6 +215,7 @@ class ControlsPanel : public Component
 		}
 
 		Colour backgroundColour;
+		TextButton btnAddFiles;
 		TextButton btnDestFolder;
 		Label lblDestFolder;
 		TextButton btnRunProcess;
@@ -237,7 +223,6 @@ class ControlsPanel : public Component
 		Slider sldLUFSTarget;
 		Label lblLimiterCeiling;
 		Slider sldLimiterCeiling;
-		TableListBox listOutputFiles;
 
 		double progressValue;
 		std::unique_ptr<ProgressBar> progressBar;
