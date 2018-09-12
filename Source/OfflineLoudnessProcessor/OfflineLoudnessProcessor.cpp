@@ -57,18 +57,18 @@ void OfflineLoudnessProcessor::startProcess()
 		numChannels = fmtReader->numChannels;
 
 		audioBuffer = std::make_unique<AudioSampleBuffer>((int)numChannels, (int)numSamples);
-		fmtReader->read(audioBuffer.get(), 0, numSamples, 0, true, true);
+		fmtReader->read(audioBuffer.get(), 0, (int)numSamples, 0, true, true);
 
-		samplesPerBlock = fmtReader->sampleRate;
+		samplesPerBlock = (int)fmtReader->sampleRate;
 		preProcessLoudnessMeter->setFreezeLoudnessRangeOnSilence(true);
-		preProcessLoudnessMeter->prepareToPlay(numSamples, 2, samplesPerBlock, pulseTimerHz);
+		preProcessLoudnessMeter->prepareToPlay((double)numSamples, 2, samplesPerBlock, pulseTimerHz);
 		preProcessLoudnessMeter->reset();
 
 		initialiseBrickwallLimiter();
-		limiterPlugin->prepareToPlay(samplesPerBlock, numSamples);
+		limiterPlugin->prepareToPlay(samplesPerBlock, (int)numSamples);
 
 		postProcessLoudnessMeter->setFreezeLoudnessRangeOnSilence(true);
-		postProcessLoudnessMeter->prepareToPlay(numSamples, 2, samplesPerBlock, pulseTimerHz);
+		postProcessLoudnessMeter->prepareToPlay((double)numSamples, 2, samplesPerBlock, pulseTimerHz);
 		postProcessLoudnessMeter->reset();
 
 		initialiseTimer(ProcessStep::InitialLoudness);
@@ -85,7 +85,7 @@ void OfflineLoudnessProcessor::handleTimerTick()
 	if (bufferPointer > numSamples - samplesPerBlock)
 	{
 		timer->stopTimer();
-		processAudioBuffer(numSamples - bufferPointer);
+		processAudioBuffer((int)numSamples - bufferPointer);
 		scanComplete();
 	}
 	else
@@ -96,8 +96,8 @@ void OfflineLoudnessProcessor::handleTimerTick()
 }
 void OfflineLoudnessProcessor::processAudioBuffer(int bufferSize)
 {
-	AudioSampleBuffer workBuffer(numChannels, bufferSize);
-	workBuffer.setDataToReferTo((float**)audioBuffer->getArrayOfReadPointers(), numChannels, bufferPointer, bufferSize);
+	AudioSampleBuffer workBuffer((int)numChannels, bufferSize);
+	workBuffer.setDataToReferTo((float**)audioBuffer->getArrayOfReadPointers(), (int)numChannels, bufferPointer, bufferSize);
 	switch (currentProcessStep)
 	{
 		case ProcessStep::InitialLoudness:
@@ -123,7 +123,7 @@ void OfflineLoudnessProcessor::scanComplete()
 			// Start the Post Processing
 			// the Post Process Loudness scan will restart the timer and will finalise in this runPostProcessing
 			scanItem->preIntegratedLufs = preProcessLoudnessMeter->getIntegratedLoudness();
-			scanItem->prePeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, numSamples));
+			scanItem->prePeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, (int)numSamples));
 
 			applyGain();
 			initialiseTimer(ProcessStep::BrickwallLimiter);
@@ -137,7 +137,7 @@ void OfflineLoudnessProcessor::scanComplete()
 			// This called after the Post Processing has been done
 			// Finalise and call the next file
 			scanItem->postIntegratedLufs = postProcessLoudnessMeter->getIntegratedLoudness();
-			scanItem->postPeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, numSamples));
+			scanItem->postPeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, (int)numSamples));
 			scanItem->postShortTermLoudness = postProcessLoudnessMeter->getShortTermLoudness();
 			scanItem->postMaximumShortTermLoudness = postProcessLoudnessMeter->getMaximumShortTermLoudness();
 			scanItem->postMomentaryLoudness = postProcessLoudnessMeter->getMomentaryLoudness();
@@ -174,7 +174,7 @@ void OfflineLoudnessProcessor::writeOutputFile()
 
 	FileOutputStream* fos = new FileOutputStream(wavFile);
 	WavAudioFormat wavFormat;
-	ScopedPointer<AudioFormatWriter> afw(wavFormat.createWriterFor(fos, fileSampleRate, audioBuffer->getNumChannels(), fileBitsPerSample, StringPairArray(), 0));
+	ScopedPointer<AudioFormatWriter> afw(wavFormat.createWriterFor(fos, (int)fileSampleRate, audioBuffer->getNumChannels(), fileBitsPerSample, StringPairArray(), 0));
 	afw->writeFromAudioSampleBuffer(*audioBuffer, 0, audioBuffer->getNumSamples());
 }
 
@@ -203,22 +203,29 @@ void OfflineLoudnessProcessor::loadLimiterPlugin()
 
 	// Scan the directory for plugins
 	std::unique_ptr<PluginDirectoryScanner> scanner = std::make_unique<PluginDirectoryScanner>(knownPluginList, *format, path, true, File(), false);
-	String currentPlugBeingScanned;
-	while (scanner->scanNextFile(true, currentPlugBeingScanned)) {}
 
-	for (int i = 0; i < knownPluginList.getNumTypes(); i++)
+	String currentPlugBeingScanned = "DUMMY";
+	while (currentPlugBeingScanned != "")
 	{
-		PluginDescription* plugIn = knownPluginList.getType(i);
-		if (plugIn->name == limiterPluginName)
+		currentPlugBeingScanned = scanner->getNextPluginFileThatWillBeScanned();
+		File f(currentPlugBeingScanned);
+		String testStr = f.getFileNameWithoutExtension();
+		if (testStr == limiterPluginName)
 		{
-			AudioPluginFormatManager fm;
-			fm.addDefaultFormats();
-
-			String ignore;
-			if (AudioPluginInstance* pluginInstance = fm.createPluginInstance(*plugIn, 44100.0, 512, ignore))
-			{
-				limiterPlugin = std::make_shared<PluginWrapperProcessor>(pluginInstance);
-			}
+			scanner->scanNextFile(true, currentPlugBeingScanned);
+			break;
+		}
+		scanner->skipNextFile();
+	}
+	if (knownPluginList.getNumTypes() > 0)
+	{
+		PluginDescription* plugIn = knownPluginList.getType(0);
+		AudioPluginFormatManager fm;
+		fm.addDefaultFormats();
+		String ignore;
+		if (AudioPluginInstance* pluginInstance = fm.createPluginInstance(*plugIn, 44100.0, 512, ignore))
+		{
+			limiterPlugin = std::make_shared<PluginWrapperProcessor>(pluginInstance);
 		}
 	}
 }

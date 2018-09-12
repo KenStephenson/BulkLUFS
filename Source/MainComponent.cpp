@@ -71,7 +71,7 @@ void MainComponent::refreshFileTableModel(String tag)
 };
 void MainComponent::addFilesButtonClicked()
 {
-	FileChooser chooser("Select files to process...", File::nonexistent, "*.wav");
+	FileChooser chooser("Select files to process...", File(), "*.wav");
 	if (chooser.browseForMultipleFilesToOpen())
 	{
 		for (int i = 0; i < chooser.getResults().size(); i++)
