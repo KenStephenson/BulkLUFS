@@ -3,24 +3,6 @@
 <JUCERPROJECT id="sRUoLK" name="BulkLUFS" projectType="guiapp" jucerVersion="5.3.2"
               bundleIdentifier="com.namesoft.BulkLUFS">
   <MAINGROUP id="njZJjI" name="BulkLUFS">
-    <GROUP id="{41017DD2-7546-FF17-89DF-F53AA393C3FE}" name="Resources">
-      <GROUP id="{324D6A76-651D-ADA0-44C4-2AB5F35CB668}" name="icons">
-        <FILE id="uuBcuO" name="barsNarrow.svg" compile="0" resource="1" file="Resources/icons/barsNarrow.svg"/>
-        <FILE id="wbhD9u" name="barsWide.svg" compile="0" resource="1" file="Resources/icons/barsWide.svg"/>
-        <FILE id="GZJR39" name="rangeArrow.svg" compile="0" resource="1" file="Resources/icons/rangeArrow.svg"/>
-        <FILE id="hvrM3B" name="wrenchByIonicons.svg" compile="0" resource="1"
-              file="Resources/icons/wrenchByIonicons.svg"/>
-      </GROUP>
-      <GROUP id="{765C143B-0599-A521-5783-E173DFD0C36B}" name="iconsUnused">
-        <FILE id="Nv02gy" name="preferences-system.svg" compile="0" resource="1"
-              file="Resources/iconsUnused/preferences-system.svg"/>
-        <FILE id="WKROmn" name="rangeHigh.svg" compile="0" resource="1" file="Resources/iconsUnused/rangeHigh.svg"/>
-        <FILE id="BH46KT" name="rangeHigh_noMiddleLine.svg" compile="0" resource="1"
-              file="Resources/iconsUnused/rangeHigh_noMiddleLine.svg"/>
-        <FILE id="DSyuFc" name="rangeLow.svg" compile="0" resource="1" file="Resources/iconsUnused/rangeLow.svg"/>
-      </GROUP>
-      <FILE id="xezZup" name="icons.zip" compile="0" resource="1" file="Resources/icons.zip"/>
-    </GROUP>
     <GROUP id="{01FF0F1F-8943-8B3A-FD46-D36D2D07B328}" name="Source">
       <GROUP id="{5601C166-21F0-DE9D-9488-DF9910FF994B}" name="OfflineLoudnessProcessor">
         <FILE id="SUURsi" name="OfflineLoudnessProcessor.cpp" compile="1" resource="0"

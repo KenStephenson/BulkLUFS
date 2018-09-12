@@ -202,7 +202,7 @@ void OfflineLoudnessProcessor::loadLimiterPlugin()
 	FileSearchPath path = format->getDefaultLocationsToSearch();
 
 	// Scan the directory for plugins
-	std::unique_ptr<PluginDirectoryScanner> scanner = std::make_unique<PluginDirectoryScanner>(knownPluginList, *format, path, true, File::nonexistent, false);
+	std::unique_ptr<PluginDirectoryScanner> scanner = std::make_unique<PluginDirectoryScanner>(knownPluginList, *format, path, true, File(), false);
 	String currentPlugBeingScanned;
 	while (scanner->scanNextFile(true, currentPlugBeingScanned)) {}
 

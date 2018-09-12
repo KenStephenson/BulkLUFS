@@ -142,13 +142,13 @@ void Ebu128LoudnessMeter::prepareToPlay (double sampleRate,
         if (expectedRequestRate > sampleRate/2)
         {
             expectedRequestRate = 10;
-            DEB ("Not possible to make expectedRequestRate a multiple of 10 and "
-                 "a divisor of the samplerate.");
+            //DEB ("Not possible to make expectedRequestRate a multiple of 10 and "
+            //     "a divisor of the samplerate.");
             break;
         }
     }
     
-    DEB ("expectedRequestRate = " + String(expectedRequestRate));
+    //DEB ("expectedRequestRate = " + String(expectedRequestRate));
     
     // Figure out how many bins are needed.
     const int timeOfAccumulationForShortTerm = 3; // seconds.
@@ -158,9 +158,9 @@ void Ebu128LoudnessMeter::prepareToPlay (double sampleRate,
     numberOfSamplesInAllBins = numberOfBins * numberOfSamplesPerBin;
     
     numberOfBinsToCover100ms = int (0.1 * expectedRequestRate);
-    DEB ("numberOfBinsToCover100ms = " + String (numberOfBinsToCover100ms));
+    //DEB ("numberOfBinsToCover100ms = " + String (numberOfBinsToCover100ms));
     numberOfBinsToCover400ms = int (0.4 * expectedRequestRate);
-    DEB ("numberOfBinsToCover400ms = " + String (numberOfBinsToCover400ms));
+    //DEB ("numberOfBinsToCover400ms = " + String (numberOfBinsToCover400ms));
     numberOfSamplesIn400ms = numberOfBinsToCover400ms * numberOfSamplesPerBin;
     
     currentBin = 0;
@@ -212,7 +212,7 @@ void Ebu128LoudnessMeter::processBlock (juce::AudioSampleBuffer &buffer)
         if (magnitude < silenceThreshold)
         {
             currentBlockIsSilent = true;
-            DEB ("Silence detected.")
+            //DEB ("Silence detected.")
         }
         else
             currentBlockIsSilent = false;
