@@ -28,7 +28,7 @@ ControlsPanel::ControlsPanel()
 	btnDestFolder.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
 	btnDestFolder.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 	btnDestFolder.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
-	btnDestFolder.setTooltip("If output files are required, select an output folder that is not the source folder. If no folder is selected, no files will be written during the analysis.");
+	btnDestFolder.setTooltip("If output files are required, select an output folder (other than the source folder). If no folder is selected, no files will be written.");
 	
 	lblDestFolder.setText(tagNoDestinationFolder, dontSendNotification);
 	lblDestFolder.setColour(Label::textColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));
@@ -129,7 +129,6 @@ FileListPanel::FileListPanel()
 	addAndMakeVisible(&listInputFiles);
 	const int colWIdth = 98;
 	listInputFiles.getHeader().addColumn("File", 1, 200, TableHeaderComponent::notSortable);
-
 	listInputFiles.getHeader().addColumn("LUFS: In", 2, colWIdth, TableHeaderComponent::notSortable);
 	listInputFiles.getHeader().addColumn("Out", 3, colWIdth, TableHeaderComponent::notSortable);
 	listInputFiles.getHeader().addColumn("Difference", 4, colWIdth, TableHeaderComponent::notSortable);
@@ -181,7 +180,15 @@ FooterPanel::FooterPanel()
 	btnClearFiles.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 	btnClearFiles.setTooltip("Clear the files list.");
 
+	btnResetFiles.setButtonText("RESET FILES");
+	btnResetFiles.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
+	btnResetFiles.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
+	btnResetFiles.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
+	btnResetFiles.setTooltip("Reset the analysis values in the files list.");
+
 	addAndMakeVisible(&btnClearFiles);
+	addAndMakeVisible(&btnResetFiles);
+
 }
 FooterPanel::~FooterPanel()
 {
@@ -199,15 +206,17 @@ void FooterPanel::resized()
 	grid.columnGap = 6_px;
 
 	grid.templateRows = { Track(1_fr) };
-	grid.templateColumns = { Track(1_fr), Track(2_fr), Track(1_fr), Track(2_fr), Track(1_fr) };
+	grid.templateColumns = { Track(1_fr), Track(1_fr), Track(1_fr), Track(1_fr), Track(1_fr), Track(1_fr), Track(1_fr) };
 	grid.items =
 	{
-		GridItem(btnClearFiles), GridItem(nullptr), GridItem(nullptr), GridItem(nullptr), GridItem(nullptr),
+		GridItem(btnClearFiles), GridItem(btnResetFiles), GridItem(nullptr), GridItem(nullptr), 
+		GridItem(nullptr), GridItem(nullptr), GridItem(nullptr),
 	};
 	grid.performLayout(getLocalBounds());
 }
 void FooterPanel::setEnableState(bool state)
 {
 	btnClearFiles.setEnabled(state);
+	btnResetFiles.setEnabled(state);
 }
 #pragma endregion

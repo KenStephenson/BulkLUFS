@@ -9,7 +9,7 @@
 #include "MainComponent.h"
 
 //==============================================================================
-MainComponent::MainComponent()
+MainComponent::MainComponent() 
 {
 	initialiseUserInterface();
 
@@ -61,6 +61,7 @@ void MainComponent::initialiseUserInterface()
 	topPanel.btnDestFolder.onClick = [this] { destinationFolderButtonClicked(); };
 	topPanel.btnRunProcess.onClick = [this] { runProcessButtonClicked(); };
 	footerPanel.btnClearFiles.onClick = [this] { clearFilesButtonClicked(); };
+	footerPanel.btnResetFiles.onClick = [this] { resetFilesButtonClicked(); };
 
 	filesToProcesstListModel.get()->setListener(this, tagInputList);
 	fileTablePanel.listInputFiles.setModel(filesToProcesstListModel.get());
@@ -111,6 +112,11 @@ void MainComponent::clearFilesButtonClicked()
 {
 	filesToProcesstListModel->clearFiles();
 	fileTablePanel.listInputFiles.updateContent();
+}
+
+void MainComponent::resetFilesButtonClicked()
+{
+	filesToProcesstListModel->resetFiles(fileTablePanel.listInputFiles);
 }
 
 bool MainComponent::validateProcessorParameters()

@@ -64,6 +64,7 @@ class MainComponent : public Component, public ListBoxModelListener, public Offl
 		void destinationFolderButtonClicked();
 		void runProcessButtonClicked();
 		void clearFilesButtonClicked();
+		void resetFilesButtonClicked();
 		#pragma endregion
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
