@@ -114,6 +114,7 @@ class FooterPanel : public Component
 		void setEnableState(bool state);
 
 		TextButton btnClearFiles;
+		TextButton btnResetFiles;
 
 	private:
 		Colour backgroundColour;

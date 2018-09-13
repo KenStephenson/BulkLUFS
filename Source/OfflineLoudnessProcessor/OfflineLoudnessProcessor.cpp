@@ -95,7 +95,7 @@ void OfflineLoudnessProcessor::runProcessStepInitialise()
 	preProcessLoudnessMeter->prepareToPlay((double)numSamples, 2, samplesPerBlock, pulseTimerHz);
 	preProcessLoudnessMeter->reset();
 
-	if (limiterPlugin == nullptr)
+	if (limiterPlugin != nullptr)
 	{
 		limiterPlugin->prepareToPlay(samplesPerBlock, (int)numSamples);
 	}
@@ -184,7 +184,7 @@ void OfflineLoudnessProcessor::processAudioBuffer(int bufferSize)
 			preProcessLoudnessMeter->processBlock(workBuffer);
 			break;
 		case ProcessStep::BrickwallLimiter:
-			if (limiterPlugin == nullptr)
+			if (limiterPlugin != nullptr)
 			{
 				limiterPlugin->processBlock(workBuffer, midiBuffer);
 			}
