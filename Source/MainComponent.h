@@ -20,7 +20,7 @@
     your controls and content.
 */
 
-class MainComponent : public Component, public ListBoxModelListener, public ScanListener
+class MainComponent : public Component, public ListBoxModelListener, public OfflineLoudnessScanListener
 {
 	public:
 		using Track = Grid::TrackInfo;
@@ -31,15 +31,14 @@ class MainComponent : public Component, public ListBoxModelListener, public Scan
 		void paint (Graphics& g) override;
 		void resized() override;
 
-		void refreshFileTableModel(String tag) override;
+		void closeApp();
 
 	private:
 		#pragma region Process Methods and Parameters
 		const String tagInputList = "INPUT";
-		std::unique_ptr<FileListBoxModel> inputListModel = nullptr;
-		std::unique_ptr<OfflineLoudnessScanManager> scanMgr = nullptr;
-		OfflineLoudnessScanDataPacket* activeScanItem;
-		
+		std::unique_ptr<FileListBoxModel> filesToProcesstListModel = nullptr;
+		std::unique_ptr<OfflineLoudnessScanManager> offlineLoudnessScanMgr = nullptr;
+		std::shared_ptr<OfflineLoudnessScanDataPacket> activeOfflineLoudnessScanItem;
 		float dBLufsTarget;
 		float dBLimiterCeiling;
 		bool writeFile = false;
@@ -47,21 +46,24 @@ class MainComponent : public Component, public ListBoxModelListener, public Scan
 
 		bool validateProcessorParameters();
 		void runProcess();
+		void stopProcess();
 		void startNextLoudnessScan();
 		void ScanCompleted() override;
 		#pragma endregion
 
 		#pragma region User Interface Parameters
 		ControlsPanel topPanel;
-		InputPanel fileTable;
+		FileListPanel fileTablePanel;
+		FooterPanel footerPanel;
 		File inputFolder;
 		File destinationFolder;
-
+		bool cancelRequest;
 		void initialiseUserInterface();
+		void updateProgressPercentage();
 		void addFilesButtonClicked();
 		void destinationFolderButtonClicked();
 		void runProcessButtonClicked();
-		void updateProgressPercentage();
+		void clearFilesButtonClicked();
 		#pragma endregion
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)

@@ -30,12 +30,17 @@
               file="Source/EBU-R128/MacrosAndJuceHeaders.h"/>
       </GROUP>
       <GROUP id="{6E571852-C048-E01E-1C8E-0D79E3F65C7C}" name="VstHost">
+        <FILE id="kUwX41" name="PluginWrapperProcessor.cpp" compile="1" resource="0"
+              file="Source/VstHost/PluginWrapperProcessor.cpp"/>
         <FILE id="XNEgDC" name="PluginWrapperProcessor.h" compile="0" resource="0"
               file="Source/VstHost/PluginWrapperProcessor.h"/>
       </GROUP>
       <GROUP id="{CF1EAD79-1B62-FCFD-6EBA-831CED15C230}" name="View">
+        <FILE id="CUWoKB" name="FileListBoxModel.cpp" compile="1" resource="0"
+              file="Source/View/FileListBoxModel.cpp"/>
         <FILE id="Kb2p5J" name="FileListBoxModel.h" compile="0" resource="0"
               file="Source/View/FileListBoxModel.h"/>
+        <FILE id="bJpGT8" name="Screen.cpp" compile="1" resource="0" file="Source/View/Screen.cpp"/>
         <FILE id="sbx1Sc" name="Screen.h" compile="0" resource="0" file="Source/View/Screen.h"/>
       </GROUP>
       <FILE id="TBrXb8" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
