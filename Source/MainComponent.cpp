@@ -13,16 +13,17 @@ MainComponent::MainComponent()
 {
 	initialiseUserInterface();
 
-	//loadLimiterPlugin();
-
-	//preProcessLoudnessMeter = std::make_unique<Ebu128LoudnessMeter>();
-	//formatManager.registerBasicFormats();
-
 	setSize(1000, 600);
 }
-
 MainComponent::~MainComponent()
 {
+}
+void MainComponent::closeApp()
+{
+	if (offlineLoudnessScanMgr != nullptr)
+	{
+		offlineLoudnessScanMgr->shutDownThread();
+	}
 }
 
 #pragma region User Interface
@@ -34,7 +35,7 @@ void MainComponent::paint (Graphics& g)
     // You can add your drawing code here!
 	g.setColour(Colours::black);
 	g.drawRect(topPanel.getLocalBounds());
-	g.drawRect(fileTable.getLocalBounds());
+	g.drawRect(fileTablePanel.getLocalBounds());
 }
 void MainComponent::resized()
 {
@@ -43,32 +44,27 @@ void MainComponent::resized()
 	using Track = Grid::TrackInfo;
 	grid.rowGap = 6_px;
 	grid.columnGap = 6_px;
-	grid.templateRows = { Track(1_fr), Track(6_fr) };
+	grid.templateRows = { Track(2_fr), Track(12_fr), Track(1_fr) };
 	grid.templateColumns = { Track(1_fr) };
-	grid.items = {GridItem(topPanel), GridItem(fileTable) };
+	grid.items = { GridItem(topPanel), GridItem(fileTablePanel), GridItem(footerPanel) };
 	grid.performLayout(getLocalBounds());
 }
 void MainComponent::initialiseUserInterface()
 {
-	inputListModel = std::make_unique<FileListBoxModel>();
+	filesToProcesstListModel = std::make_unique<FileListBoxModel>();
 
 	addAndMakeVisible(topPanel);
-	addAndMakeVisible(fileTable);
+	addAndMakeVisible(fileTablePanel);
+	addAndMakeVisible(footerPanel);
 
 	topPanel.btnAddFiles.onClick = [this] { addFilesButtonClicked(); };
 	topPanel.btnDestFolder.onClick = [this] { destinationFolderButtonClicked(); };
 	topPanel.btnRunProcess.onClick = [this] { runProcessButtonClicked(); };
+	footerPanel.btnClearFiles.onClick = [this] { clearFilesButtonClicked(); };
 
-	inputListModel.get()->setListener(this, tagInputList);
-	fileTable.listInputFiles.setModel(inputListModel.get());
+	filesToProcesstListModel.get()->setListener(this, tagInputList);
+	fileTablePanel.listInputFiles.setModel(filesToProcesstListModel.get());
 }
-void MainComponent::refreshFileTableModel(String tag)
-{
-	if (tag == tagInputList)
-	{
-		fileTable.listInputFiles.updateContent();
-	}
-};
 void MainComponent::addFilesButtonClicked()
 {
 	FileChooser chooser("Select files to process...", File(), "*.wav");
@@ -77,14 +73,14 @@ void MainComponent::addFilesButtonClicked()
 		for (int i = 0; i < chooser.getResults().size(); i++)
 		{
 			File f = chooser.getResults()[i];
-			OfflineLoudnessScanDataPacket* scanData = new OfflineLoudnessScanDataPacket();
+			std::shared_ptr<OfflineLoudnessScanDataPacket> scanData = std::make_shared<OfflineLoudnessScanDataPacket>();
 			scanData->rowNo = i;
 			scanData->file = f;
-			inputListModel->data.add(scanData);
+			filesToProcesstListModel->addFile(scanData);
 		}
-		inputFolder = inputListModel->data[0]->file.getParentDirectory();
+		inputFolder = filesToProcesstListModel->getParentDirectory();
 	}
-	fileTable.listInputFiles.updateContent();
+	fileTablePanel.listInputFiles.updateContent();
 }
 void MainComponent::destinationFolderButtonClicked()
 {
@@ -101,14 +97,28 @@ void MainComponent::destinationFolderButtonClicked()
 }
 void MainComponent::runProcessButtonClicked()
 {
-	runProcess();
+	if (offlineLoudnessScanMgr == nullptr)
+	{
+		runProcess();
+	}
+	else
+	{
+		stopProcess();
+	}
 }
+
+void MainComponent::clearFilesButtonClicked()
+{
+	filesToProcesstListModel->clearFiles();
+	fileTablePanel.listInputFiles.updateContent();
+}
+
 bool MainComponent::validateProcessorParameters()
 {
 	dBLufsTarget = (float)topPanel.sldLUFSTarget.getValue();
 	dBLimiterCeiling = (float)topPanel.sldLimiterCeiling.getValue() / 2;
 
-	if (inputListModel->getNumRows() == 0)
+	if (filesToProcesstListModel->getNumRows() == 0)
 	{
 		AlertWindow dlg("Parameter Error", "No Input Files", AlertWindow::AlertIconType::WarningIcon);
 		dlg.addButton("OK", 1);
@@ -131,9 +141,9 @@ bool MainComponent::validateProcessorParameters()
 void MainComponent::updateProgressPercentage()
 {
 	double percent = 0;
-	if (inputListModel->getNumRows() > 0)
+	if (filesToProcesstListModel->getNumRows() > 0)
 	{
-		percent = ((double)activeScanIndex / (double)inputListModel->getNumRows());
+		percent = ((double)activeScanIndex / (double)filesToProcesstListModel->getNumRows());
 	}
 	topPanel.progressValue = percent;
 }
@@ -146,37 +156,60 @@ void MainComponent::runProcess()
 	{
 		return;
 	}
-	topPanel.setEnableState(false);
 
+	topPanel.setEnableState(false);
+	footerPanel.setEnableState(false);
+
+	cancelRequest = false;
 	activeScanIndex = 0;
 	startNextLoudnessScan();
 }
+
+void MainComponent::stopProcess()
+{
+	cancelRequest = true;
+	offlineLoudnessScanMgr->shutDownThread();
+}
+
 void MainComponent::startNextLoudnessScan()
 {
-	if (activeScanIndex >= inputListModel->data.size())
+	if (activeScanIndex >= filesToProcesstListModel->getNumRows())
 	{
-		// completed
 		activeScanIndex = 0;
 		updateProgressPercentage();
-		scanMgr = nullptr;
+		offlineLoudnessScanMgr = nullptr;
 		topPanel.setEnableState(true);
+		footerPanel.setEnableState(true);
 		return;
 	}
 	updateProgressPercentage();
 
-	activeScanItem = inputListModel->data[activeScanIndex];
-	activeScanItem->dBLufsTarget = dBLufsTarget;
-	activeScanItem->dBLimiterCeiling = dBLimiterCeiling;
-	activeScanItem->destinationFolder = destinationFolder;
-	activeScanItem->writeFile = writeFile;
+	activeOfflineLoudnessScanItem = filesToProcesstListModel->getFile(activeScanIndex);
+	activeOfflineLoudnessScanItem->dBLufsTarget = dBLufsTarget;
+	activeOfflineLoudnessScanItem->dBLimiterCeiling = dBLimiterCeiling;
+	activeOfflineLoudnessScanItem->destinationFolder = destinationFolder;
+	activeOfflineLoudnessScanItem->writeFile = writeFile;
 
-	scanMgr = std::make_unique<OfflineLoudnessScanManager>();
-	scanMgr->runScan(activeScanItem, this);
+	offlineLoudnessScanMgr = std::make_unique<OfflineLoudnessScanManager>();
+	offlineLoudnessScanMgr->runScan(activeOfflineLoudnessScanItem, this);
 }
 
 void MainComponent::ScanCompleted()
 {
-	fileTable.listInputFiles.repaintRow(activeScanItem->rowNo);
+	if (cancelRequest)
+	{
+		cancelRequest = false;
+		filesToProcesstListModel->resetFiles(fileTablePanel.listInputFiles);
+
+		activeScanIndex = 0;
+		updateProgressPercentage();
+		offlineLoudnessScanMgr = nullptr;
+		topPanel.setEnableState(true);
+		footerPanel.setEnableState(true);
+		return;
+	}
+
+	fileTablePanel.listInputFiles.repaintRow(activeOfflineLoudnessScanItem->rowNo);
 	activeScanIndex++;
 	startNextLoudnessScan();
 }

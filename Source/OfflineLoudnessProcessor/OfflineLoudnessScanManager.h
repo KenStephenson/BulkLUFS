@@ -12,28 +12,29 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "./OfflineLoudnessProcessor.h"
 
-class ScanListener
+class OfflineLoudnessScanListener
 {
 public:
-	ScanListener() {};
-	~ScanListener() {};
+	OfflineLoudnessScanListener() {};
+	~OfflineLoudnessScanListener() {};
 	virtual void ScanCompleted() {};
 };
 
-class OfflineLoudnessScanManager : public Thread::Listener, public ScanListener
+class OfflineLoudnessScanManager : public Thread::Listener, public OfflineLoudnessScanListener
 {
 	public:
 		OfflineLoudnessScanManager() {};
 		~OfflineLoudnessScanManager() {};
 
-		void runScan(OfflineLoudnessScanDataPacket* _scanData, ScanListener* _viewListener)
+		void runScan(std::shared_ptr<OfflineLoudnessScanDataPacket> _offlineLoudnessScanData, OfflineLoudnessScanListener* _viewListener)
 		{
 			viewListener = _viewListener;
-			scanThread = std::make_unique<OfflineLoudnessProcessor>(_scanData);
+			scanThread = std::make_unique<OfflineLoudnessProcessor>(_offlineLoudnessScanData);
 			scanThread->addListener(this);
 			scanThread->startThread();
 		}
-	
+		void shutDownThread() { scanThread->shutDownThread(); }
+
 	private:
 		void exitSignalSent() override
 		{
@@ -49,5 +50,5 @@ class OfflineLoudnessScanManager : public Thread::Listener, public ScanListener
 		}
 
 		std::unique_ptr<OfflineLoudnessProcessor> scanThread = nullptr;
-		ScanListener* viewListener = nullptr;
+		OfflineLoudnessScanListener* viewListener = nullptr;
 };

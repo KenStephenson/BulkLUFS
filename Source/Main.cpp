@@ -60,13 +60,14 @@ public:
     class MainWindow    : public DocumentWindow
     {
     public:
-        MainWindow (String name)  : DocumentWindow (name,
-                                                    Desktop::getInstance().getDefaultLookAndFeel()
-                                                                          .findColour (ResizableWindow::backgroundColourId),
-                                                    DocumentWindow::allButtons)
+        MainWindow (String name)  
+			: DocumentWindow (name,
+            Desktop::getInstance().getDefaultLookAndFeel().findColour (ResizableWindow::backgroundColourId),
+            DocumentWindow::allButtons)
         {
             setUsingNativeTitleBar (true);
-            setContentOwned (new MainComponent(), true);
+			mainComponent = new MainComponent();
+            setContentOwned (mainComponent, true);
             setResizable (false, false);
 
             centreWithSize (getWidth(), getHeight());
@@ -78,6 +79,9 @@ public:
             // This is called when the user tries to close this window. Here, we'll just
             // ask the app to quit when this happens, but you can change this to do
             // whatever you need.
+			
+			mainComponent->closeApp();
+
             JUCEApplication::getInstance()->systemRequestedQuit();
         }
 
@@ -89,6 +93,9 @@ public:
         */
 
     private:
+		MainComponent* mainComponent = nullptr;
+		SharedResourcePointer<TooltipWindow> tipWindow;
+
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
     };
 
