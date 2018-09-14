@@ -37,6 +37,7 @@ class FileListBoxModel : public TableListBoxModel
 		void cellDoubleClicked(int rowNumber, int columnId, const MouseEvent &) override;
 	
 	private:		
+		const int numDecimalPoints = 1;
 		Array<std::shared_ptr<OfflineLoudnessScanDataPacket>> data;
 		ListBoxModelListener* listener;
 		String tag;
