@@ -59,6 +59,10 @@ void OfflineLoudnessProcessor::runProcessStep()
 	case ProcessStep::PostProcessLoudness:
 		runProcessStepPostLoudness();
 		break;
+
+	case ProcessStep::Complete:
+		signalThreadShouldExit();
+		break;
 	};
 
 }
@@ -86,22 +90,22 @@ void OfflineLoudnessProcessor::runProcessStepInitialise()
 	AudioFormatReader* fmtReader = readerSource->getAudioFormatReader();
 	numSamples = fmtReader->lengthInSamples;
 	numChannels = fmtReader->numChannels;
-	samplesPerBlock = (int)fmtReader->sampleRate;
+	sampleRate = (int)fmtReader->sampleRate;
 
 	audioBuffer = std::make_unique<AudioSampleBuffer>((int)numChannels, (int)numSamples);
 	fmtReader->read(audioBuffer.get(), 0, (int)numSamples, 0, true, true);
 
 	preProcessLoudnessMeter->setFreezeLoudnessRangeOnSilence(true);
-	preProcessLoudnessMeter->prepareToPlay((double)numSamples, 2, samplesPerBlock, pulseTimerHz);
+	preProcessLoudnessMeter->prepareToPlay((double)sampleRate, 2, sampleRate, pulseTimerHz);
 	preProcessLoudnessMeter->reset();
 
 	if (limiterPlugin != nullptr)
 	{
-		limiterPlugin->prepareToPlay(samplesPerBlock, (int)numSamples);
+		limiterPlugin->prepareToPlay(sampleRate, (int)numSamples);
 	}
 
 	postProcessLoudnessMeter->setFreezeLoudnessRangeOnSilence(true);
-	postProcessLoudnessMeter->prepareToPlay((double)numSamples, 2, samplesPerBlock, pulseTimerHz);
+	postProcessLoudnessMeter->prepareToPlay((double)sampleRate, 2, sampleRate, pulseTimerHz);
 	postProcessLoudnessMeter->reset();
 
 	initialiseTimer(ProcessStep::PreProcessLoudness);
@@ -120,7 +124,10 @@ void OfflineLoudnessProcessor::runProcessStepPreLoudness()
 	offlineLoudnessScanData->gain = gainFactor;
 	audioBuffer->applyGain(gainFactor);
 
-	initialiseTimer(ProcessStep::BrickwallLimiter);
+	//initialiseTimer(ProcessStep::BrickwallLimiter);
+	bufferPointer = 0;
+	currentProcessStep = ProcessStep::Complete;
+	runProcessStep();
 }
 void OfflineLoudnessProcessor::runProcessStepBrickwallLimiter()
 {
@@ -149,8 +156,9 @@ void OfflineLoudnessProcessor::runProcessStepPostLoudness()
 		ScopedPointer<AudioFormatWriter> afw(wavFormat.createWriterFor(fos, (double)fileSampleRate, audioBuffer->getNumChannels(), fileBitsPerSample, StringPairArray(), 0));
 		afw->writeFromAudioSampleBuffer(*audioBuffer, 0, audioBuffer->getNumSamples());
 	}
+	bufferPointer = 0;
 	currentProcessStep = ProcessStep::Complete;
-	signalThreadShouldExit();
+	runProcessStep();
 }
 
 
@@ -162,7 +170,7 @@ void OfflineLoudnessProcessor::initialiseTimer(ProcessStep _processStep)
 }
 void OfflineLoudnessProcessor::handleTimerTick()
 {
-	if (bufferPointer > numSamples - samplesPerBlock)
+	if (bufferPointer > numSamples - sampleRate)
 	{
 		timer->stopTimer();
 		processAudioBuffer((int)numSamples - bufferPointer);
@@ -170,8 +178,8 @@ void OfflineLoudnessProcessor::handleTimerTick()
 	}
 	else
 	{
-		processAudioBuffer(samplesPerBlock);
-		bufferPointer += samplesPerBlock;
+		processAudioBuffer(sampleRate);
+		bufferPointer += sampleRate;
 	}
 }
 void OfflineLoudnessProcessor::processAudioBuffer(int bufferSize)

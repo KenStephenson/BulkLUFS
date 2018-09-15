@@ -46,12 +46,12 @@ ControlsPanel::ControlsPanel()
 	lblLUFSTarget.setColour(Label::backgroundColourId, ColourFactory::getColour(theme::LABEL_BK_COLOUR));
 	lblLUFSTarget.setJustificationType(Justification::centred);
 	sldLUFSTarget.setRange(-23.0f, -10.0f);
-	sldLUFSTarget.setValue(-13.0f);
+	sldLUFSTarget.setValue(-14.0f);
 	sldLUFSTarget.setTextValueSuffix(" LUFS");
 	sldLUFSTarget.setNumDecimalPlacesToDisplay(1);
 	sldLUFSTarget.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, true, 120, 20);
 	sldLUFSTarget.setColour(Slider::textBoxTextColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));
-	sldLUFSTarget.setTooltip("Set the required output loudness - default -13LUFS");
+	sldLUFSTarget.setTooltip("Set the required output loudness - default -14LUFS");
 
 	lblLimiterCeiling.setText("LIMITER CEILING", dontSendNotification);
 	lblLimiterCeiling.setColour(Label::textColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));

@@ -78,11 +78,11 @@ class OfflineLoudnessProcessor : public Thread, public TimerListener
 		double fileSampleRate;
 		double fileBitsPerSample;
 
-		int pulseTimerHz = 200;
-		int samplesPerBlock = 44100;
+		int pulseTimerHz = 100;
 		int bufferPointer = 0;
 		int64 numSamples = 0;
-		int64 numChannels = 0;
+		int64 numChannels = 2;
+		int64 sampleRate = 44100;
 
 		const String limiterPluginName = "George Yohng's W1 Limiter";
 		const String limiterPluginName64 = "George Yohng's W1 Limiter x64";
