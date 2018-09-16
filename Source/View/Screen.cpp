@@ -9,6 +9,7 @@
 */
 
 #include "Screen.h"
+#include "FileListBoxModel.h"
 
 #pragma region HeaderPanel Panel
 HeaderPanel::HeaderPanel()
@@ -98,9 +99,6 @@ void HeaderPanel::setEnableState(bool state)
 }
 #pragma endregion
 
-
-
-
 #pragma region Control Panel
 ControlsPanel::ControlsPanel()
 {
@@ -173,6 +171,7 @@ void ControlsPanel::setEnableState(bool state)
 FileListPanel::FileListPanel()
 {
 	using theme = ColourFactory::ThemeComponent;
+	using colID = FileListBoxModel::ColumnID;
 
 	backgroundColour = ColourFactory::getColour(theme::PANEL_BK_COLOUR);
 
@@ -181,15 +180,28 @@ FileListPanel::FileListPanel()
 
 	addAndMakeVisible(&listInputFiles);
 	const int colWIdth = 98;
-	listInputFiles.getHeader().addColumn("File", 1, 200, TableHeaderComponent::notSortable);
-	listInputFiles.getHeader().addColumn("LUFS: In", 2, colWIdth, TableHeaderComponent::notSortable);
-	listInputFiles.getHeader().addColumn("LUFS: Out", 3, colWIdth, TableHeaderComponent::notSortable);
-	listInputFiles.getHeader().addColumn("Difference", 4, colWIdth, TableHeaderComponent::notSortable);
-	listInputFiles.getHeader().addColumn("Range", 5, colWIdth, TableHeaderComponent::notSortable);
-	listInputFiles.getHeader().addColumn("Max Short Term", 6, colWIdth, TableHeaderComponent::notSortable);
-	listInputFiles.getHeader().addColumn("Gain [1=0dB]", 7, colWIdth, TableHeaderComponent::notSortable);
-	listInputFiles.getHeader().addColumn("Peak dBFS: In", 8, colWIdth, TableHeaderComponent::notSortable);
-	listInputFiles.getHeader().addColumn("Peak dBFS: Out", 9, colWIdth, TableHeaderComponent::notSortable);
+	listInputFiles.getHeader().addColumn("File", colID::File, 200, TableHeaderComponent::notSortable);
+	listInputFiles.getHeader().addColumn("IN [LUFS]", colID::InLufs, colWIdth, TableHeaderComponent::notSortable);
+	listInputFiles.getHeader().addColumn("OUT [LUFS]", colID::OutLufs, colWIdth, TableHeaderComponent::notSortable);
+	listInputFiles.getHeader().addColumn("Range [LUFS]", colID::Range, colWIdth, TableHeaderComponent::notSortable);
+	listInputFiles.getHeader().addColumn("MaxShortTerm", colID::MaxShortTerm, colWIdth, TableHeaderComponent::notSortable);
+	listInputFiles.getHeader().addColumn("Diff [LUFS]", colID::Diff, colWIdth, TableHeaderComponent::notSortable);
+	listInputFiles.getHeader().addColumn("Gain [1=0dB]", colID::Gain, colWIdth, TableHeaderComponent::notSortable);
+	listInputFiles.getHeader().addColumn("PEAK IN [dBFS]", colID::InDbfs, colWIdth, TableHeaderComponent::notSortable);
+	listInputFiles.getHeader().addColumn("PEAK OUT [dBFS]", colID::OutDbfs, colWIdth, TableHeaderComponent::notSortable);
+
+	//enum ColumnID
+	//{
+	//	File = 1,
+	//	InLufs = 2,
+	//	OutLufs = 3,
+	//	Range = 4,
+	//	MaxShortTerm = 5,
+	//	Diff = 6,
+	//	Gain = 7,
+	//	InDbfs = 8,
+	//	OutDbfs = 9,
+	//};
 }
 FileListPanel::~FileListPanel()
 {
