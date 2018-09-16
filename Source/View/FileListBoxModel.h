@@ -36,6 +36,18 @@ class FileListBoxModel : public TableListBoxModel
 		void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override;
 		void cellDoubleClicked(int rowNumber, int columnId, const MouseEvent &) override;
 	
+		enum ColumnID
+		{
+			File = 1,
+			InLufs = 2,
+			OutLufs = 3,
+			Range = 4,
+			MaxShortTerm = 5,
+			Diff = 6,
+			Gain = 7,
+			InDbfs = 8,
+			OutDbfs = 9,
+		};
 	private:		
 		const int numDecimalPoints = 1;
 		Array<std::shared_ptr<OfflineLoudnessScanDataPacket>> data;

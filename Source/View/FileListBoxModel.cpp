@@ -54,36 +54,38 @@ void FileListBoxModel::paintRowBackground(Graphics& g, int rowNumber, int width,
 }
 void FileListBoxModel::paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) 
 {
+	using colID = FileListBoxModel::ColumnID;
+
 	Rectangle<int> r(width, height);
 	std::shared_ptr<OfflineLoudnessScanDataPacket> row = data[rowNumber];
 	switch (columnId)
 	{
-	case 1:
+	case colID::File:
 		g.drawText(row->file.getFileName(), r, Justification::centredLeft);
 		break;
 
-	case 2:
+	case colID::InLufs:
 		g.drawText(String(row->preIntegratedLufs, numDecimalPoints), r, Justification::centredRight);
 		break;
-	case 3:
+	case colID::OutLufs:
 		g.drawText(String(row->postIntegratedLufs, numDecimalPoints), r, Justification::centredRight);
 		break;
-	case 4:
-		g.drawText(String(row->diffLufs, numDecimalPoints), r, Justification::centredRight);
-		break;
-	case 5:
+	case colID::Range:
 		g.drawText(String(row->postLoudnessRange, numDecimalPoints), r, Justification::centredRight);
 		break;
-	case 6:
+	case colID::MaxShortTerm:
 		g.drawText(String(row->postMaximumShortTermLoudness, numDecimalPoints), r, Justification::centredRight);
 		break;
-	case 7:
+	case colID::Diff:
+		g.drawText(String(row->diffLufs, numDecimalPoints), r, Justification::centredRight);
+		break;
+	case colID::Gain:
 		g.drawText(String(row->gain, numDecimalPoints), r, Justification::centredRight);
 		break;
-	case 8:
+	case colID::InDbfs:
 		g.drawText(String(row->prePeakDbfs, numDecimalPoints), r, Justification::centredRight);
 		break;
-	case 9:
+	case colID::OutDbfs:
 		g.drawText(String(row->postPeakDbfs, numDecimalPoints), r, Justification::centredRight);
 		break;
 	default:
