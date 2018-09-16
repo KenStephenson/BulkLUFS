@@ -12,6 +12,8 @@
 MainComponent::MainComponent() 
 {
 	initialiseUserInterface();
+	
+	loadLimiterPlugin();
 
 	setSize(1000, 600);
 }
@@ -30,11 +32,12 @@ void MainComponent::closeApp()
 void MainComponent::paint (Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-	g.fillAll(Colours::lightgrey);
+	using theme = ColourFactory::ThemeComponent;
+	g.fillAll(ColourFactory::getColour(theme::PANEL_BK_COLOUR));
 
     // You can add your drawing code here!
 	g.setColour(Colours::black);
-	g.drawRect(topPanel.getLocalBounds());
+	g.drawRect(controlPanel.getLocalBounds());
 	g.drawRect(fileTablePanel.getLocalBounds());
 }
 void MainComponent::resized()
@@ -42,26 +45,26 @@ void MainComponent::resized()
 	Grid grid;
 
 	using Track = Grid::TrackInfo;
-	grid.rowGap = 6_px;
-	grid.columnGap = 6_px;
-	grid.templateRows = { Track(2_fr), Track(12_fr), Track(1_fr) };
+	grid.setGap(6_px);
+	grid.templateRows = { Track(1_fr), Track(12_fr), Track(1_fr), };
 	grid.templateColumns = { Track(1_fr) };
-	grid.items = { GridItem(topPanel), GridItem(fileTablePanel), GridItem(footerPanel) };
+	grid.items = { GridItem(headerPanel), GridItem(fileTablePanel), GridItem(controlPanel), };
 	grid.performLayout(getLocalBounds());
 }
 void MainComponent::initialiseUserInterface()
 {
 	filesToProcesstListModel = std::make_unique<FileListBoxModel>();
 
-	addAndMakeVisible(topPanel);
+	addAndMakeVisible(headerPanel);
+	addAndMakeVisible(controlPanel);
 	addAndMakeVisible(fileTablePanel);
-	addAndMakeVisible(footerPanel);
 
-	topPanel.btnAddFiles.onClick = [this] { addFilesButtonClicked(); };
-	topPanel.btnDestFolder.onClick = [this] { destinationFolderButtonClicked(); };
-	topPanel.btnRunProcess.onClick = [this] { runProcessButtonClicked(); };
-	footerPanel.btnClearFiles.onClick = [this] { clearFilesButtonClicked(); };
-	footerPanel.btnResetFiles.onClick = [this] { resetFilesButtonClicked(); };
+	headerPanel.btnAddFiles.onClick = [this] { addFilesButtonClicked(); };
+	headerPanel.btnDestFolder.onClick = [this] { destinationFolderButtonClicked(); };
+	headerPanel.btnRunProcess.onClick = [this] { runProcessButtonClicked(); };
+	headerPanel.btnClearFiles.onClick = [this] { clearFilesButtonClicked(); };
+	headerPanel.btnResetFiles.onClick = [this] { resetFilesButtonClicked(); };
+	controlPanel.btnLimiterCeiling.onClick = [this] { setPeakLimiterClicked(); };
 
 	filesToProcesstListModel.get()->setListener(this, tagInputList);
 	fileTablePanel.listInputFiles.setModel(filesToProcesstListModel.get());
@@ -89,11 +92,11 @@ void MainComponent::destinationFolderButtonClicked()
 	if (chooser.browseForDirectory())
 	{
 		destinationFolder = chooser.getResult();
-		topPanel.lblDestFolder.setText(destinationFolder.getFileNameWithoutExtension(), dontSendNotification);
+		headerPanel.lblDestFolder.setText(destinationFolder.getFileNameWithoutExtension(), dontSendNotification);
 	}
 	else
 	{
-		topPanel.lblDestFolder.setText(topPanel.tagNoDestinationFolder, dontSendNotification);
+		headerPanel.lblDestFolder.setText(headerPanel.tagNoDestinationFolder, dontSendNotification);
 	}
 }
 void MainComponent::runProcessButtonClicked()
@@ -119,10 +122,72 @@ void MainComponent::resetFilesButtonClicked()
 	filesToProcesstListModel->resetFiles(fileTablePanel.listInputFiles);
 }
 
+void MainComponent::setPeakLimiterClicked()
+{
+    AudioProcessorEditor* editor = limiterPlugin->createEditor();
+	editor->setVisible(true);
+	DialogWindow::showModalDialog("Peak Limiter", editor, this, Colours::aliceblue, true, false);
+	delete editor;
+}
+void MainComponent::loadLimiterPlugin()
+{
+	limiterPlugin = nullptr;
+
+	KnownPluginList knownPluginList;
+	std::unique_ptr<AudioPluginFormat> format = std::make_unique<VSTPluginFormat>();
+	FileSearchPath path = format->getDefaultLocationsToSearch();
+
+	// Scan the directory for plugins
+	std::unique_ptr<PluginDirectoryScanner> scanner = std::make_unique<PluginDirectoryScanner>(knownPluginList, *format, path, true, File(), false);
+
+	String currentPlugBeingScanned = "----";
+	while (currentPlugBeingScanned != "")
+	{
+		currentPlugBeingScanned = scanner->getNextPluginFileThatWillBeScanned();
+		File f(currentPlugBeingScanned);
+		String plugName = f.getFileNameWithoutExtension();
+		if (plugName == limiterPluginName || plugName == limiterPluginName64)
+		{
+			scanner->scanNextFile(true, currentPlugBeingScanned);
+		}
+		else
+		{
+			scanner->skipNextFile();
+		}
+	}
+	int numTypes = knownPluginList.getNumTypes();
+	PluginDescription* plugIn = nullptr;
+	switch (numTypes)
+	{
+	case 1:
+		plugIn = knownPluginList.getType(0);
+		break;
+	case 2:
+		PluginDescription* plugIn1 = knownPluginList.getType(0);
+		PluginDescription* plugIn2 = knownPluginList.getType(1);
+		plugIn = plugIn1->name.contains("x64") ? plugIn1 : plugIn2;
+		break;
+	}
+	if (plugIn != nullptr)
+	{
+		AudioPluginFormatManager fm;
+		fm.addDefaultFormats();
+		String ignore;
+		if (AudioPluginInstance* pluginInstance = fm.createPluginInstance(*plugIn, 44100.0, 512, ignore))
+		{
+			limiterPlugin = std::make_unique<PluginWrapperProcessor>(pluginInstance);
+
+			limiterPlugin->setNonRealtime(true);
+			limiterPlugin->setParameter(0, 0.94f);		// Threshold -1dbFS
+			limiterPlugin->setParameter(1, 0.94f);		// Ceiling -1dbFS
+			limiterPlugin->setParameter(2, 0.2f);		// Release  5.5ms
+			limiterPlugin->setParameter(3, 1.0f);		// Auto Release - ON
+		}
+	}
+}
 bool MainComponent::validateProcessorParameters()
 {
-	dBLufsTarget = (float)topPanel.sldLUFSTarget.getValue();
-	dBLimiterCeiling = (float)topPanel.sldLimiterCeiling.getValue() / 2;
+	dBLufsTarget = (float)controlPanel.sldLUFSTarget.getValue();
 
 	if (filesToProcesstListModel->getNumRows() == 0)
 	{
@@ -133,7 +198,7 @@ bool MainComponent::validateProcessorParameters()
 		return false;
 	}
 	
-	writeFile = topPanel.lblDestFolder.getText() != topPanel.tagNoDestinationFolder ? true : false;
+	writeFile = headerPanel.lblDestFolder.getText() != headerPanel.tagNoDestinationFolder ? true : false;
 	if (writeFile && destinationFolder == inputFolder)
 	{
 		AlertWindow dlg("Parameter Error", "Input and Output folders are the same", AlertWindow::AlertIconType::WarningIcon);
@@ -151,7 +216,7 @@ void MainComponent::updateProgressPercentage()
 	{
 		percent = ((double)activeScanIndex / (double)filesToProcesstListModel->getNumRows());
 	}
-	topPanel.progressValue = percent;
+	headerPanel.progressValue = percent;
 }
 #pragma endregion
 
@@ -163,8 +228,8 @@ void MainComponent::runProcess()
 		return;
 	}
 
-	topPanel.setEnableState(false);
-	footerPanel.setEnableState(false);
+	headerPanel.setEnableState(false);
+	controlPanel.setEnableState(false);
 
 	cancelRequest = false;
 	activeScanIndex = 0;
@@ -184,17 +249,18 @@ void MainComponent::startNextLoudnessScan()
 		activeScanIndex = 0;
 		updateProgressPercentage();
 		offlineLoudnessScanThread = nullptr;
-		topPanel.setEnableState(true);
-		footerPanel.setEnableState(true);
+
+		headerPanel.setEnableState(true);
+		controlPanel.setEnableState(true);
 		return;
 	}
 	updateProgressPercentage();
 
 	activeOfflineLoudnessScanItem = filesToProcesstListModel->getFile(activeScanIndex);
 	activeOfflineLoudnessScanItem->dBLufsTarget = dBLufsTarget;
-	activeOfflineLoudnessScanItem->dBLimiterCeiling = dBLimiterCeiling;
 	activeOfflineLoudnessScanItem->destinationFolder = destinationFolder;
 	activeOfflineLoudnessScanItem->writeFile = writeFile;
+	activeOfflineLoudnessScanItem->limiterPlugin = limiterPlugin.get();
 
 	offlineLoudnessScanThread = std::make_unique<OfflineLoudnessScanThread>();
 	offlineLoudnessScanThread->runScan(activeOfflineLoudnessScanItem, this);
@@ -210,8 +276,9 @@ void MainComponent::ScanCompleted()
 		activeScanIndex = 0;
 		updateProgressPercentage();
 		offlineLoudnessScanThread = nullptr;
-		topPanel.setEnableState(true);
-		footerPanel.setEnableState(true);
+
+		headerPanel.setEnableState(true);
+		controlPanel.setEnableState(true);
 		return;
 	}
 

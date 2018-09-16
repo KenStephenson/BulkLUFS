@@ -13,6 +13,7 @@
 OfflineLoudnessProcessor::OfflineLoudnessProcessor(std::shared_ptr<OfflineLoudnessScanDataPacket> _offlineLoudnessScanData)
 	: Thread("LUFSScan"), offlineLoudnessScanData(_offlineLoudnessScanData) 
 {
+	limiterPlugin = offlineLoudnessScanData->limiterPlugin;
 };
 
 OfflineLoudnessProcessor::~OfflineLoudnessProcessor() 
@@ -76,7 +77,7 @@ void OfflineLoudnessProcessor::runProcessStepInitialise()
 		return;
 	}
 
-	loadLimiterPlugin();
+	//loadLimiterPlugin();
 	if (limiterPlugin == nullptr)
 	{
 		signalThreadShouldExit();
@@ -213,62 +214,62 @@ bool OfflineLoudnessProcessor::loadFileFromDisk(File srcFile)
 	fileBitsPerSample = 0;
 	return false;
 }
-void OfflineLoudnessProcessor::loadLimiterPlugin()
-{
-	limiterPlugin = nullptr;
-
-	KnownPluginList knownPluginList;
-	std::unique_ptr<AudioPluginFormat> format = std::make_unique<VSTPluginFormat>();
-	FileSearchPath path = format->getDefaultLocationsToSearch();
-
-	// Scan the directory for plugins
-	std::unique_ptr<PluginDirectoryScanner> scanner = std::make_unique<PluginDirectoryScanner>(knownPluginList, *format, path, true, File(), false);
-
-	String currentPlugBeingScanned = "----";
-	while (currentPlugBeingScanned != "")
-	{
-		currentPlugBeingScanned = scanner->getNextPluginFileThatWillBeScanned();
-		File f(currentPlugBeingScanned);
-		String plugName = f.getFileNameWithoutExtension();
-		if (plugName == limiterPluginName || plugName == limiterPluginName64)
-		{
-			scanner->scanNextFile(true, currentPlugBeingScanned);
-		}
-		else
-		{
-			scanner->skipNextFile();
-		}
-	}
-	int numTypes = knownPluginList.getNumTypes();
-	PluginDescription* plugIn = nullptr;
-	switch (numTypes)
-	{
-		case 1:
-			plugIn = knownPluginList.getType(0);
-			break;
-		case 2:
-			PluginDescription* plugIn1 = knownPluginList.getType(0);
-			PluginDescription* plugIn2 = knownPluginList.getType(1);
-			plugIn = plugIn1->name.contains("x64") ? plugIn1 : plugIn2;
-			break;
-	}
-	if (plugIn != nullptr)
-	{
-		AudioPluginFormatManager fm;
-		fm.addDefaultFormats();
-		String ignore;
-		if (AudioPluginInstance* pluginInstance = fm.createPluginInstance(*plugIn, 44100.0, 512, ignore))
-		{
-			float dbFS = Decibels::decibelsToGain(offlineLoudnessScanData->dBLimiterCeiling);
-
-			limiterPlugin = std::make_unique<PluginWrapperProcessor>(pluginInstance);
-			limiterPlugin->setNonRealtime(true);
-			limiterPlugin->setParameter(0, dbFS);	// Threshold
-			limiterPlugin->setParameter(1, dbFS);	// Ceiling
-			limiterPlugin->setParameter(2, 20.0f);	// Release
-			limiterPlugin->setParameter(3, false);	// Auto Release
-		}
-	}
-}
+//void OfflineLoudnessProcessor::loadLimiterPlugin()
+//{
+//	limiterPlugin = nullptr;
+//
+//	KnownPluginList knownPluginList;
+//	std::unique_ptr<AudioPluginFormat> format = std::make_unique<VSTPluginFormat>();
+//	FileSearchPath path = format->getDefaultLocationsToSearch();
+//
+//	// Scan the directory for plugins
+//	std::unique_ptr<PluginDirectoryScanner> scanner = std::make_unique<PluginDirectoryScanner>(knownPluginList, *format, path, true, File(), false);
+//
+//	String currentPlugBeingScanned = "----";
+//	while (currentPlugBeingScanned != "")
+//	{
+//		currentPlugBeingScanned = scanner->getNextPluginFileThatWillBeScanned();
+//		File f(currentPlugBeingScanned);
+//		String plugName = f.getFileNameWithoutExtension();
+//		if (plugName == limiterPluginName || plugName == limiterPluginName64)
+//		{
+//			scanner->scanNextFile(true, currentPlugBeingScanned);
+//		}
+//		else
+//		{
+//			scanner->skipNextFile();
+//		}
+//	}
+//	int numTypes = knownPluginList.getNumTypes();
+//	PluginDescription* plugIn = nullptr;
+//	switch (numTypes)
+//	{
+//		case 1:
+//			plugIn = knownPluginList.getType(0);
+//			break;
+//		case 2:
+//			PluginDescription* plugIn1 = knownPluginList.getType(0);
+//			PluginDescription* plugIn2 = knownPluginList.getType(1);
+//			plugIn = plugIn1->name.contains("x64") ? plugIn1 : plugIn2;
+//			break;
+//	}
+//	if (plugIn != nullptr)
+//	{
+//		AudioPluginFormatManager fm;
+//		fm.addDefaultFormats();
+//		String ignore;
+//		if (AudioPluginInstance* pluginInstance = fm.createPluginInstance(*plugIn, 44100.0, 512, ignore))
+//		{
+//			float dbFS = Decibels::decibelsToGain(offlineLoudnessScanData->dBLimiterCeiling);
+//
+//			limiterPlugin = std::make_unique<PluginWrapperProcessor>(pluginInstance);
+//			limiterPlugin->setNonRealtime(true);
+//			limiterPlugin->setParameter(0, dbFS);	// Threshold
+//			limiterPlugin->setParameter(1, dbFS);	// Ceiling
+//			limiterPlugin->setParameter(2, 20.0f);	// Release
+//			limiterPlugin->setParameter(3, false);	// Auto Release
+//		}
+//	}
+//}
 #pragma endregion
 

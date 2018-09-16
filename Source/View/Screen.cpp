@@ -10,12 +10,10 @@
 
 #include "Screen.h"
 
-#pragma region Control Panel
-
-ControlsPanel::ControlsPanel()
+#pragma region HeaderPanel Panel
+HeaderPanel::HeaderPanel()
 {
 	using theme = ColourFactory::ThemeComponent;
-
 	backgroundColour = ColourFactory::getColour(theme::PANEL_BK_COLOUR);
 
 	btnAddFiles.setButtonText("1 - ADD FILES");
@@ -29,7 +27,7 @@ ControlsPanel::ControlsPanel()
 	btnDestFolder.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 	btnDestFolder.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 	btnDestFolder.setTooltip("If output files are required, select an output folder (other than the source folder). If no folder is selected, no files will be written.");
-	
+
 	lblDestFolder.setText(tagNoDestinationFolder, dontSendNotification);
 	lblDestFolder.setColour(Label::textColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));
 	lblDestFolder.setColour(Label::backgroundColourId, ColourFactory::getColour(theme::LABEL_BK_COLOUR));
@@ -40,6 +38,75 @@ ControlsPanel::ControlsPanel()
 	btnRunProcess.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 	btnRunProcess.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 	btnRunProcess.setTooltip("Start / Stop the analysis process");
+
+	progressBar = std::make_unique<ProgressBar>(progressValue);
+	progressBar->setPercentageDisplay(true);
+
+	btnClearFiles.setButtonText("CLEAR FILES");
+	btnClearFiles.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
+	btnClearFiles.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
+	btnClearFiles.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
+	btnClearFiles.setTooltip("Clear the files list.");
+
+	btnResetFiles.setButtonText("RESET FILES");
+	btnResetFiles.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
+	btnResetFiles.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
+	btnResetFiles.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
+	btnResetFiles.setTooltip("Reset the analysis values in the files list.");
+
+	addAndMakeVisible(&btnAddFiles);
+	addAndMakeVisible(&btnDestFolder);
+	addAndMakeVisible(&lblDestFolder);
+	addAndMakeVisible(&btnRunProcess);
+	addAndMakeVisible(*progressBar.get());
+	addAndMakeVisible(&btnClearFiles);
+	addAndMakeVisible(&btnResetFiles);
+}
+HeaderPanel::~HeaderPanel()
+{
+}
+void HeaderPanel::paint(Graphics& g)
+{
+	g.fillAll(backgroundColour);
+}
+void HeaderPanel::resized()
+{
+	Grid grid;
+	using Track = Grid::TrackInfo;
+	grid.setGap(6_px);
+	grid.templateRows = { Track(1_fr) };
+	grid.templateColumns = { Track(1_fr), Track(1_fr), Track(1_fr), Track(1_fr), Track(1_fr), Track(1_fr), Track(1_fr) };
+	grid.items =
+	{
+		GridItem(btnAddFiles), 
+		GridItem(btnDestFolder), 
+		GridItem(lblDestFolder), 
+		GridItem(btnRunProcess), 
+		GridItem(*progressBar.get()), 
+		GridItem(btnClearFiles), 
+		GridItem(btnResetFiles),
+	};
+	grid.performLayout(getLocalBounds());
+}
+void HeaderPanel::setEnableState(bool state)
+{
+	btnAddFiles.setEnabled(state);
+	btnDestFolder.setEnabled(state);
+	btnRunProcess.setButtonText(state ? tagProcessStart : tagProcessStop);
+	btnClearFiles.setEnabled(state);
+	btnResetFiles.setEnabled(state);
+}
+#pragma endregion
+
+
+
+
+#pragma region Control Panel
+ControlsPanel::ControlsPanel()
+{
+	using theme = ColourFactory::ThemeComponent;
+
+	backgroundColour = ColourFactory::getColour(theme::PANEL_BK_COLOUR);
 
 	lblLUFSTarget.setText("TARGET LOUDNESS", dontSendNotification);
 	lblLUFSTarget.setColour(Label::textColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));
@@ -53,10 +120,12 @@ ControlsPanel::ControlsPanel()
 	sldLUFSTarget.setColour(Slider::textBoxTextColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));
 	sldLUFSTarget.setTooltip("Set the required output loudness - default -14LUFS");
 
-	lblLimiterCeiling.setText("LIMITER CEILING", dontSendNotification);
-	lblLimiterCeiling.setColour(Label::textColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));
-	lblLimiterCeiling.setColour(Label::backgroundColourId, ColourFactory::getColour(theme::LABEL_BK_COLOUR));
-	lblLimiterCeiling.setJustificationType(Justification::centred);
+
+	btnLimiterCeiling.setButtonText("PEAK LIMITER");
+	btnLimiterCeiling.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
+	btnLimiterCeiling.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
+	btnLimiterCeiling.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
+	btnLimiterCeiling.setTooltip("Select and Set a Peak Limiter.");
 
 	sldLimiterCeiling.setRange(-3.0f, 0.0f);
 	sldLimiterCeiling.setValue(-1.0f);
@@ -66,18 +135,10 @@ ControlsPanel::ControlsPanel()
 	sldLimiterCeiling.setColour(Slider::textBoxTextColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));
 	sldLimiterCeiling.setTooltip("Set the limiter ceiling - default -1dbFS");
 
-	progressBar = std::make_unique<ProgressBar>(progressValue);
-	progressBar->setPercentageDisplay(true);
-
-	addAndMakeVisible(&btnAddFiles);
-	addAndMakeVisible(&btnDestFolder);
-	addAndMakeVisible(&lblDestFolder);
-	addAndMakeVisible(&btnRunProcess);
 	addAndMakeVisible(&lblLUFSTarget);
 	addAndMakeVisible(&sldLUFSTarget);
-	addAndMakeVisible(&lblLimiterCeiling);
+	addAndMakeVisible(&btnLimiterCeiling);
 	addAndMakeVisible(&sldLimiterCeiling);
-	addAndMakeVisible(*progressBar.get());
 }
 ControlsPanel::~ControlsPanel()
 {
@@ -86,34 +147,26 @@ void ControlsPanel::paint(Graphics& g)
 {
 	g.fillAll(backgroundColour);
 }
-
 void ControlsPanel::resized()
 {
 	Grid grid;
 	using Track = Grid::TrackInfo;
-	grid.rowGap = 6_px;
-	grid.columnGap = 6_px;
+	grid.setGap(6_px);
 
-	grid.templateRows = { Track(1_fr), Track(1_fr) };
-	grid.templateColumns = { Track(1_fr), Track(2_fr), Track(1_fr), Track(2_fr), Track(1_fr) };
+	grid.templateRows = { Track(1_fr) };
+	grid.templateColumns = { Track(1_fr), Track(1_fr), Track(2_fr), Track(1_fr), Track(1_fr), Track(1_fr), };
 	grid.items =
 	{
-		GridItem(lblLUFSTarget) , GridItem(sldLUFSTarget) , GridItem(lblLimiterCeiling) , GridItem(sldLimiterCeiling) , GridItem(*progressBar.get()),
-		GridItem(btnAddFiles), GridItem(nullptr), GridItem(btnDestFolder), GridItem(lblDestFolder), GridItem(btnRunProcess),
+		GridItem(nullptr), GridItem(lblLUFSTarget) , GridItem(sldLUFSTarget), GridItem(nullptr), GridItem(btnLimiterCeiling), GridItem(nullptr),
 	};
 	grid.performLayout(getLocalBounds());
 }
 void ControlsPanel::setEnableState(bool state)
 {
-	btnAddFiles.setEnabled(state);
-	btnDestFolder.setEnabled(state);
-	//btnRunProcess.setEnabled(state);
 	sldLUFSTarget.setEnabled(state);
 	sldLimiterCeiling.setEnabled(state);
-
-	btnRunProcess.setButtonText(state ? tagProcessStart : tagProcessStop);
+	btnLimiterCeiling, setEnabled(state);
 }
-
 #pragma endregion
 
 #pragma region File List Panel
@@ -130,13 +183,13 @@ FileListPanel::FileListPanel()
 	const int colWIdth = 98;
 	listInputFiles.getHeader().addColumn("File", 1, 200, TableHeaderComponent::notSortable);
 	listInputFiles.getHeader().addColumn("LUFS: In", 2, colWIdth, TableHeaderComponent::notSortable);
-	listInputFiles.getHeader().addColumn("Out", 3, colWIdth, TableHeaderComponent::notSortable);
+	listInputFiles.getHeader().addColumn("LUFS: Out", 3, colWIdth, TableHeaderComponent::notSortable);
 	listInputFiles.getHeader().addColumn("Difference", 4, colWIdth, TableHeaderComponent::notSortable);
 	listInputFiles.getHeader().addColumn("Range", 5, colWIdth, TableHeaderComponent::notSortable);
 	listInputFiles.getHeader().addColumn("Max Short Term", 6, colWIdth, TableHeaderComponent::notSortable);
 	listInputFiles.getHeader().addColumn("Gain [1=0dB]", 7, colWIdth, TableHeaderComponent::notSortable);
 	listInputFiles.getHeader().addColumn("Peak dBFS: In", 8, colWIdth, TableHeaderComponent::notSortable);
-	listInputFiles.getHeader().addColumn("Out", 9, colWIdth, TableHeaderComponent::notSortable);
+	listInputFiles.getHeader().addColumn("Peak dBFS: Out", 9, colWIdth, TableHeaderComponent::notSortable);
 }
 FileListPanel::~FileListPanel()
 {
@@ -154,7 +207,7 @@ void FileListPanel::resized()
 	fbLeftPanel.justifyContent = FlexBox::JustifyContent::spaceBetween;
 	fbLeftPanel.flexDirection = FlexBox::Direction::column;
 
-	fbLeftPanel.items.add(FlexItem(listInputFiles).withMinHeight(550.0f).withMinWidth(50.0f).withFlex(1));
+	fbLeftPanel.items.add(FlexItem(listInputFiles).withMinHeight(250.0f).withMinWidth(50.0f).withFlex(1));
 
 	//==============================================================================
 	FlexBox fb;
@@ -165,58 +218,4 @@ void FileListPanel::resized()
 
 
 
-#pragma endregion
-
-#pragma region Footer Panel
-FooterPanel::FooterPanel()
-{
-	using theme = ColourFactory::ThemeComponent;
-
-	backgroundColour = ColourFactory::getColour(theme::PANEL_BK_COLOUR);
-
-	btnClearFiles.setButtonText("CLEAR FILES");
-	btnClearFiles.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
-	btnClearFiles.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
-	btnClearFiles.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
-	btnClearFiles.setTooltip("Clear the files list.");
-
-	btnResetFiles.setButtonText("RESET FILES");
-	btnResetFiles.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
-	btnResetFiles.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
-	btnResetFiles.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
-	btnResetFiles.setTooltip("Reset the analysis values in the files list.");
-
-	addAndMakeVisible(&btnClearFiles);
-	addAndMakeVisible(&btnResetFiles);
-
-}
-FooterPanel::~FooterPanel()
-{
-}
-
-void FooterPanel::paint(Graphics& g) 
-{
-	g.fillAll(backgroundColour);
-}
-void FooterPanel::resized() 
-{
-	Grid grid;
-	using Track = Grid::TrackInfo;
-	grid.rowGap = 6_px;
-	grid.columnGap = 6_px;
-
-	grid.templateRows = { Track(1_fr) };
-	grid.templateColumns = { Track(1_fr), Track(1_fr), Track(1_fr), Track(1_fr), Track(1_fr), Track(1_fr), Track(1_fr) };
-	grid.items =
-	{
-		GridItem(btnClearFiles), GridItem(btnResetFiles), GridItem(nullptr), GridItem(nullptr), 
-		GridItem(nullptr), GridItem(nullptr), GridItem(nullptr),
-	};
-	grid.performLayout(getLocalBounds());
-}
-void FooterPanel::setEnableState(bool state)
-{
-	btnClearFiles.setEnabled(state);
-	btnResetFiles.setEnabled(state);
-}
 #pragma endregion

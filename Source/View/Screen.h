@@ -22,7 +22,6 @@ class ColourFactory
 			BUTTON_TEXT_COLOUR = 4,
 			LIST_INPUTS_COLOUR = 5,
 			LIST_OUTLINE_COLOUR = 6,
-			LIST_OUTPUTS_COLOUR = 7,
 		};
 		static Colour getColour(ThemeComponent item)
 		{
@@ -30,25 +29,22 @@ class ColourFactory
 			switch (item)
 			{
 			case ThemeComponent::PANEL_BK_COLOUR:
-				c = Colours::lightgrey;
+				c = Colour(0xffd6eaf8);
 				break;
 			case ThemeComponent::LABEL_BK_COLOUR:
-				c = Colours::lightgrey;
+				c = Colour(0xffd6eaf8);
 				break;
 			case ThemeComponent::LABEL_TEXT_COLOUR:
 				c = Colours::black;
 				break;
 			case ThemeComponent::BUTTON_BK_COLOUR:
-				c = Colours::slategrey;
+				c = Colour(0xffebf5fb);
 				break;
 			case ThemeComponent::BUTTON_TEXT_COLOUR:
-				c = Colours::white;
+				c = Colours::black;
 				break;
 			case ThemeComponent::LIST_INPUTS_COLOUR:
 				c = Colours::aliceblue;
-				break;
-			case ThemeComponent::LIST_OUTPUTS_COLOUR:
-				c = Colours::lightgoldenrodyellow;
 				break;
 			case ThemeComponent::LIST_OUTLINE_COLOUR:
 				c = Colours::black;
@@ -59,6 +55,35 @@ class ColourFactory
 };
 
 
+class HeaderPanel : public Component
+{
+	public:
+
+		HeaderPanel();
+		~HeaderPanel();
+		void paint(Graphics& g) override;
+		void resized() override;
+		void setEnableState(bool state);
+
+		TextButton btnAddFiles;
+		TextButton btnDestFolder;
+		TextButton btnRunProcess;
+		Label lblDestFolder;
+		std::unique_ptr<ProgressBar> progressBar;
+		TextButton btnClearFiles;
+		TextButton btnResetFiles;
+
+		const String tagNoDestinationFolder = "No Folder Selected...";
+		const String tagProcessStart = "3 - START PROCESS";
+		const String tagProcessStop = "3 - STOP PROCESS";
+
+		double progressValue;
+
+	private:
+		Colour backgroundColour;
+
+		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HeaderPanel)
+};
 class ControlsPanel : public Component
 {
 	public:
@@ -69,23 +94,13 @@ class ControlsPanel : public Component
 		void resized() override;
 		void setEnableState(bool state);
 
-
-		TextButton btnAddFiles;
-		TextButton btnDestFolder;
-		TextButton btnRunProcess;
 		Slider sldLUFSTarget;
 		Slider sldLimiterCeiling;
-		Label lblDestFolder;
-		double progressValue;
-		const String tagNoDestinationFolder = "No Folder Selected...";
-		const String tagProcessStart = "3 - START PROCESS";
-		const String tagProcessStop = "3 - STOP PROCESS";
-		
+		TextButton btnLimiterCeiling;
+
 	private:
 		Colour backgroundColour;
 		Label lblLUFSTarget;
-		Label lblLimiterCeiling;
-		std::unique_ptr<ProgressBar> progressBar;
 		const String tagSliderIdLUFS = "LUFS";
 		const String tagSliderIdCeiling = "CEILING";
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ControlsPanel)
@@ -103,21 +118,5 @@ class FileListPanel : public Component
 private:
 	Colour backgroundColour;
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FileListPanel)
-};
-class FooterPanel : public Component
-{
-	public:
-		FooterPanel();
-		~FooterPanel();
-		void paint(Graphics& g) override;
-		void resized() override;
-		void setEnableState(bool state);
-
-		TextButton btnClearFiles;
-		TextButton btnResetFiles;
-
-	private:
-		Colour backgroundColour;
-		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FooterPanel)
 };
 #pragma endregion

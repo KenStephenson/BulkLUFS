@@ -30,6 +30,10 @@
               file="Source/EBU-R128/MacrosAndJuceHeaders.h"/>
       </GROUP>
       <GROUP id="{6E571852-C048-E01E-1C8E-0D79E3F65C7C}" name="VstHost">
+        <FILE id="cy5YPt" name="PluginListManager.cpp" compile="1" resource="0"
+              file="Source/VstHost/PluginListManager.cpp"/>
+        <FILE id="QVxaGP" name="PluginListManager.h" compile="0" resource="0"
+              file="Source/VstHost/PluginListManager.h"/>
         <FILE id="kUwX41" name="PluginWrapperProcessor.cpp" compile="1" resource="0"
               file="Source/VstHost/PluginWrapperProcessor.cpp"/>
         <FILE id="XNEgDC" name="PluginWrapperProcessor.h" compile="0" resource="0"

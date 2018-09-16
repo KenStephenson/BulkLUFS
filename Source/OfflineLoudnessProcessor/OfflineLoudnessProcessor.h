@@ -61,7 +61,7 @@ class OfflineLoudnessProcessor : public Thread, public TimerListener
 		void runProcessStepPostLoudness();
 
 		bool loadFileFromDisk(File srcFile);
-		void loadLimiterPlugin();
+		//void loadLimiterPlugin();
 		void initialiseTimer(ProcessStep _processStep);
 		void handleTimerTick() override;
 		void processAudioBuffer(int bufferSize);
@@ -82,11 +82,9 @@ class OfflineLoudnessProcessor : public Thread, public TimerListener
 		std::unique_ptr<AudioSampleBuffer> audioBuffer;
 		std::unique_ptr<Ebu128LoudnessMeter> preProcessLoudnessMeter;
 		std::unique_ptr<Ebu128LoudnessMeter> postProcessLoudnessMeter;
-		std::unique_ptr<AudioProcessor> limiterPlugin;
 		std::unique_ptr<PulseTimer> timer;
 		std::shared_ptr<OfflineLoudnessScanDataPacket> offlineLoudnessScanData;
 
-		const String limiterPluginName = "George Yohng's W1 Limiter";
-		const String limiterPluginName64 = "George Yohng's W1 Limiter x64";
+		AudioProcessor* limiterPlugin = nullptr;
 };
 

@@ -13,6 +13,7 @@
 #include "./View/FileListBoxModel.h"
 #include "./OfflineLoudnessProcessor/OfflineLoudnessScanDataPacket.h"
 #include "./OfflineLoudnessProcessor/OfflineLoudnessScanThread.h"
+#include "./VstHost/PluginListManager.h"
 
 //==============================================================================
 /*
@@ -35,14 +36,19 @@ class MainComponent : public Component, public ListBoxModelListener, public Offl
 
 	private:
 		#pragma region Process Methods and Parameters
+		
+		const String limiterPluginName = "George Yohng's W1 Limiter";
+		const String limiterPluginName64 = "George Yohng's W1 Limiter x64";
+		void loadLimiterPlugin();
+		std::unique_ptr<AudioProcessor> limiterPlugin;
+
 		const String tagInputList = "INPUT";
 		std::unique_ptr<FileListBoxModel> filesToProcesstListModel = nullptr;
 		std::unique_ptr<OfflineLoudnessScanThread> offlineLoudnessScanThread = nullptr;
 		std::shared_ptr<OfflineLoudnessScanDataPacket> activeOfflineLoudnessScanItem;
-		float dBLufsTarget;
-		float dBLimiterCeiling;
+		float dBLufsTarget = -14.0f;
 		bool writeFile = false;
-		int activeScanIndex;
+		int activeScanIndex = 0;
 
 		bool validateProcessorParameters();
 		void runProcess();
@@ -52,9 +58,10 @@ class MainComponent : public Component, public ListBoxModelListener, public Offl
 		#pragma endregion
 
 		#pragma region User Interface Parameters
-		ControlsPanel topPanel;
+		HeaderPanel headerPanel;
+		ControlsPanel controlPanel;
 		FileListPanel fileTablePanel;
-		FooterPanel footerPanel;
+
 		File inputFolder;
 		File destinationFolder;
 		bool cancelRequest;
@@ -65,6 +72,7 @@ class MainComponent : public Component, public ListBoxModelListener, public Offl
 		void runProcessButtonClicked();
 		void clearFilesButtonClicked();
 		void resetFilesButtonClicked();
+		void setPeakLimiterClicked();
 		#pragma endregion
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
