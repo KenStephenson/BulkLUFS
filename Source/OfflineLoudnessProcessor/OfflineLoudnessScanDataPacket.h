@@ -22,9 +22,9 @@ struct OfflineLoudnessScanDataPacket
 		int rowNo = 0;
 		File file;
 		File destinationFolder;
-		float dBLufsTarget;
-		float dBLimiterCeiling;
+		float dBLufsTarget = -14.0f;
 		bool writeFile = false;
+		AudioProcessor* limiterPlugin = nullptr;
 
 		// Output Results
 		float preIntegratedLufs = 0;

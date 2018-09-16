@@ -11,8 +11,8 @@
               file="Source/OfflineLoudnessProcessor/OfflineLoudnessProcessor.h"/>
         <FILE id="v7yOQw" name="OfflineLoudnessScanDataPacket.h" compile="0"
               resource="0" file="Source/OfflineLoudnessProcessor/OfflineLoudnessScanDataPacket.h"/>
-        <FILE id="EHWGpJ" name="OfflineLoudnessScanManager.h" compile="0" resource="0"
-              file="Source/OfflineLoudnessProcessor/OfflineLoudnessScanManager.h"/>
+        <FILE id="EHWGpJ" name="OfflineLoudnessScanThread.h" compile="0" resource="0"
+              file="Source/OfflineLoudnessProcessor/OfflineLoudnessScanThread.h"/>
       </GROUP>
       <GROUP id="{64BA5795-5395-AE6C-250B-03A075D0E047}" name="EBU-R128">
         <GROUP id="{166E06E5-A441-D607-C2F4-B3B95C15FB34}" name="filters">
@@ -30,6 +30,10 @@
               file="Source/EBU-R128/MacrosAndJuceHeaders.h"/>
       </GROUP>
       <GROUP id="{6E571852-C048-E01E-1C8E-0D79E3F65C7C}" name="VstHost">
+        <FILE id="cy5YPt" name="PluginListManager.cpp" compile="1" resource="0"
+              file="Source/VstHost/PluginListManager.cpp"/>
+        <FILE id="QVxaGP" name="PluginListManager.h" compile="0" resource="0"
+              file="Source/VstHost/PluginListManager.h"/>
         <FILE id="kUwX41" name="PluginWrapperProcessor.cpp" compile="1" resource="0"
               file="Source/VstHost/PluginWrapperProcessor.cpp"/>
         <FILE id="XNEgDC" name="PluginWrapperProcessor.h" compile="0" resource="0"
