@@ -12,7 +12,7 @@
 #include "./View/Screen.h"
 #include "./View/FileListBoxModel.h"
 #include "./OfflineLoudnessProcessor/OfflineLoudnessScanDataPacket.h"
-#include "./OfflineLoudnessProcessor/OfflineLoudnessScanManager.h"
+#include "./OfflineLoudnessProcessor/OfflineLoudnessScanThread.h"
 
 //==============================================================================
 /*
@@ -37,7 +37,7 @@ class MainComponent : public Component, public ListBoxModelListener, public Offl
 		#pragma region Process Methods and Parameters
 		const String tagInputList = "INPUT";
 		std::unique_ptr<FileListBoxModel> filesToProcesstListModel = nullptr;
-		std::unique_ptr<OfflineLoudnessScanManager> offlineLoudnessScanMgr = nullptr;
+		std::unique_ptr<OfflineLoudnessScanThread> offlineLoudnessScanThread = nullptr;
 		std::shared_ptr<OfflineLoudnessScanDataPacket> activeOfflineLoudnessScanItem;
 		float dBLufsTarget;
 		float dBLimiterCeiling;

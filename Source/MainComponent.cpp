@@ -20,9 +20,9 @@ MainComponent::~MainComponent()
 }
 void MainComponent::closeApp()
 {
-	if (offlineLoudnessScanMgr != nullptr)
+	if (offlineLoudnessScanThread != nullptr)
 	{
-		offlineLoudnessScanMgr->shutDownThread();
+		offlineLoudnessScanThread->shutDownThread();
 	}
 }
 
@@ -98,7 +98,7 @@ void MainComponent::destinationFolderButtonClicked()
 }
 void MainComponent::runProcessButtonClicked()
 {
-	if (offlineLoudnessScanMgr == nullptr)
+	if (offlineLoudnessScanThread == nullptr)
 	{
 		runProcess();
 	}
@@ -174,7 +174,7 @@ void MainComponent::runProcess()
 void MainComponent::stopProcess()
 {
 	cancelRequest = true;
-	offlineLoudnessScanMgr->shutDownThread();
+	offlineLoudnessScanThread->shutDownThread();
 }
 
 void MainComponent::startNextLoudnessScan()
@@ -183,7 +183,7 @@ void MainComponent::startNextLoudnessScan()
 	{
 		activeScanIndex = 0;
 		updateProgressPercentage();
-		offlineLoudnessScanMgr = nullptr;
+		offlineLoudnessScanThread = nullptr;
 		topPanel.setEnableState(true);
 		footerPanel.setEnableState(true);
 		return;
@@ -196,8 +196,8 @@ void MainComponent::startNextLoudnessScan()
 	activeOfflineLoudnessScanItem->destinationFolder = destinationFolder;
 	activeOfflineLoudnessScanItem->writeFile = writeFile;
 
-	offlineLoudnessScanMgr = std::make_unique<OfflineLoudnessScanManager>();
-	offlineLoudnessScanMgr->runScan(activeOfflineLoudnessScanItem, this);
+	offlineLoudnessScanThread = std::make_unique<OfflineLoudnessScanThread>();
+	offlineLoudnessScanThread->runScan(activeOfflineLoudnessScanItem, this);
 }
 
 void MainComponent::ScanCompleted()
@@ -209,7 +209,7 @@ void MainComponent::ScanCompleted()
 
 		activeScanIndex = 0;
 		updateProgressPercentage();
-		offlineLoudnessScanMgr = nullptr;
+		offlineLoudnessScanThread = nullptr;
 		topPanel.setEnableState(true);
 		footerPanel.setEnableState(true);
 		return;

@@ -66,6 +66,16 @@ class OfflineLoudnessProcessor : public Thread, public TimerListener
 		void handleTimerTick() override;
 		void processAudioBuffer(int bufferSize);
 
+		double fileSampleRate;
+		double fileBitsPerSample;
+
+		int pulseTimerHz = 100;
+		int bufferPointer = 0;
+		int64 numSamples = 0;
+		int64 numChannels = 2;
+		int64 samplePerBlock = 4410;
+
+
 		AudioFormatManager formatManager;
 		MidiBuffer midiBuffer;
 		std::unique_ptr<AudioFormatReaderSource> readerSource;
@@ -75,14 +85,6 @@ class OfflineLoudnessProcessor : public Thread, public TimerListener
 		std::unique_ptr<AudioProcessor> limiterPlugin;
 		std::unique_ptr<PulseTimer> timer;
 		std::shared_ptr<OfflineLoudnessScanDataPacket> offlineLoudnessScanData;
-		double fileSampleRate;
-		double fileBitsPerSample;
-
-		int pulseTimerHz = 100;
-		int bufferPointer = 0;
-		int64 numSamples = 0;
-		int64 numChannels = 2;
-		int64 sampleRate = 44100;
 
 		const String limiterPluginName = "George Yohng's W1 Limiter";
 		const String limiterPluginName64 = "George Yohng's W1 Limiter x64";

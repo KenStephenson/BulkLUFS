@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    OfflineLoudnessScanManager.h
+    OfflineLoudnessScanThread.h
     Created: 11 Sep 2018 5:30:48pm
     Author:  Ken
 
@@ -20,11 +20,11 @@ public:
 	virtual void ScanCompleted() {};
 };
 
-class OfflineLoudnessScanManager : public Thread::Listener, public OfflineLoudnessScanListener
+class OfflineLoudnessScanThread : public Thread::Listener, public OfflineLoudnessScanListener
 {
 	public:
-		OfflineLoudnessScanManager() {};
-		~OfflineLoudnessScanManager() {};
+		OfflineLoudnessScanThread() {};
+		~OfflineLoudnessScanThread() {};
 
 		void runScan(std::shared_ptr<OfflineLoudnessScanDataPacket> _offlineLoudnessScanData, OfflineLoudnessScanListener* _viewListener)
 		{

@@ -90,23 +90,18 @@ void OfflineLoudnessProcessor::runProcessStepInitialise()
 	AudioFormatReader* fmtReader = readerSource->getAudioFormatReader();
 	numSamples = fmtReader->lengthInSamples;
 	numChannels = fmtReader->numChannels;
-	sampleRate = (int)fmtReader->sampleRate;
+	samplePerBlock = (int)fmtReader->sampleRate;
+	pulseTimerHz = 100;
 
 	audioBuffer = std::make_unique<AudioSampleBuffer>((int)numChannels, (int)numSamples);
 	fmtReader->read(audioBuffer.get(), 0, (int)numSamples, 0, true, true);
 
-	preProcessLoudnessMeter->setFreezeLoudnessRangeOnSilence(true);
-	preProcessLoudnessMeter->prepareToPlay((double)sampleRate, 2, sampleRate, pulseTimerHz);
-	preProcessLoudnessMeter->reset();
-
+	preProcessLoudnessMeter->prepareToPlay((double)fileSampleRate, 2, samplePerBlock, pulseTimerHz);
 	if (limiterPlugin != nullptr)
 	{
-		limiterPlugin->prepareToPlay(sampleRate, (int)numSamples);
+		limiterPlugin->prepareToPlay(fileSampleRate, (int)samplePerBlock);
 	}
-
-	postProcessLoudnessMeter->setFreezeLoudnessRangeOnSilence(true);
-	postProcessLoudnessMeter->prepareToPlay((double)sampleRate, 2, sampleRate, pulseTimerHz);
-	postProcessLoudnessMeter->reset();
+	postProcessLoudnessMeter->prepareToPlay((double)fileSampleRate, 2, samplePerBlock, pulseTimerHz);
 
 	initialiseTimer(ProcessStep::PreProcessLoudness);
 }
@@ -124,10 +119,8 @@ void OfflineLoudnessProcessor::runProcessStepPreLoudness()
 	offlineLoudnessScanData->gain = gainFactor;
 	audioBuffer->applyGain(gainFactor);
 
-	//initialiseTimer(ProcessStep::BrickwallLimiter);
-	bufferPointer = 0;
-	currentProcessStep = ProcessStep::Complete;
-	runProcessStep();
+	initialiseTimer(ProcessStep::BrickwallLimiter);
+
 }
 void OfflineLoudnessProcessor::runProcessStepBrickwallLimiter()
 {
@@ -170,7 +163,7 @@ void OfflineLoudnessProcessor::initialiseTimer(ProcessStep _processStep)
 }
 void OfflineLoudnessProcessor::handleTimerTick()
 {
-	if (bufferPointer > numSamples - sampleRate)
+	if (bufferPointer > numSamples - samplePerBlock)
 	{
 		timer->stopTimer();
 		processAudioBuffer((int)numSamples - bufferPointer);
@@ -178,14 +171,14 @@ void OfflineLoudnessProcessor::handleTimerTick()
 	}
 	else
 	{
-		processAudioBuffer(sampleRate);
-		bufferPointer += sampleRate;
+		processAudioBuffer(fileSampleRate);
+		bufferPointer += fileSampleRate;
 	}
 }
 void OfflineLoudnessProcessor::processAudioBuffer(int bufferSize)
 {
 	AudioSampleBuffer workBuffer((int)numChannels, bufferSize);
-	workBuffer.setDataToReferTo((float**)audioBuffer->getArrayOfReadPointers(), (int)numChannels, bufferPointer, bufferSize);
+	workBuffer.setDataToReferTo((float**)audioBuffer->getArrayOfWritePointers(), (int)numChannels, bufferPointer, bufferSize);
 	switch (currentProcessStep)
 	{
 		case ProcessStep::PreProcessLoudness:
