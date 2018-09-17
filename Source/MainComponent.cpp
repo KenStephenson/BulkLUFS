@@ -125,8 +125,16 @@ void MainComponent::resetFilesButtonClicked()
 void MainComponent::setPeakLimiterClicked()
 {
     AudioProcessorEditor* editor = limiterPlugin->createEditor();
-	editor->setVisible(true);
-	DialogWindow::showModalDialog("Peak Limiter", editor, this, Colours::aliceblue, true, false);
+
+	DialogWindow::LaunchOptions launchOptions;
+	launchOptions.dialogTitle = "Peak Limiter";
+	launchOptions.escapeKeyTriggersCloseButton = true;
+	launchOptions.resizable = false;
+	launchOptions.useNativeTitleBar = true;
+	launchOptions.useBottomRightCornerResizer = false;
+	launchOptions.componentToCentreAround = this;
+	launchOptions.content.set(editor, false);
+	launchOptions.runModal();
 	delete editor;
 }
 void MainComponent::loadLimiterPlugin()

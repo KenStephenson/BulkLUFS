@@ -101,6 +101,7 @@ class ControlsPanel : public Component
 	private:
 		Colour backgroundColour;
 		Label lblLUFSTarget;
+
 		const String tagSliderIdLUFS = "LUFS";
 		const String tagSliderIdCeiling = "CEILING";
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ControlsPanel)

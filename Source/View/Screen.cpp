@@ -189,19 +189,6 @@ FileListPanel::FileListPanel()
 	listInputFiles.getHeader().addColumn("Gain [1=0dB]", colID::Gain, colWIdth, TableHeaderComponent::notSortable);
 	listInputFiles.getHeader().addColumn("PEAK IN [dBFS]", colID::InDbfs, colWIdth, TableHeaderComponent::notSortable);
 	listInputFiles.getHeader().addColumn("PEAK OUT [dBFS]", colID::OutDbfs, colWIdth, TableHeaderComponent::notSortable);
-
-	//enum ColumnID
-	//{
-	//	File = 1,
-	//	InLufs = 2,
-	//	OutLufs = 3,
-	//	Range = 4,
-	//	MaxShortTerm = 5,
-	//	Diff = 6,
-	//	Gain = 7,
-	//	InDbfs = 8,
-	//	OutDbfs = 9,
-	//};
 }
 FileListPanel::~FileListPanel()
 {

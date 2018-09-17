@@ -69,7 +69,6 @@ public:
 			mainComponent = new MainComponent();
             setContentOwned (mainComponent, true);
             setResizable (false, false);
-
             centreWithSize (getWidth(), getHeight());
             setVisible (true);
         }
