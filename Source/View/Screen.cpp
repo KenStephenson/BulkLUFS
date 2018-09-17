@@ -80,14 +80,21 @@ void HeaderPanel::resized()
 	grid.items =
 	{
 		GridItem(btnAddFiles), 
-		GridItem(btnDestFolder), 
-		GridItem(lblDestFolder), 
-		GridItem(btnRunProcess), 
-		GridItem(*progressBar.get()), 
-		GridItem(btnClearFiles), 
+		GridItem(btnDestFolder),
+		GridItem(lblDestFolder),
+		GridItem(btnRunProcess),
+		GridItem(*progressBar.get()),
+		GridItem(btnClearFiles),
 		GridItem(btnResetFiles),
 	};
 	grid.performLayout(getLocalBounds());
+
+	btnAddFiles.setBounds(btnAddFiles.getBounds().reduced(4));
+	btnDestFolder.setBounds(btnDestFolder.getBounds().reduced(4));
+	btnRunProcess.setBounds(btnRunProcess.getBounds().reduced(4));
+	progressBar.get()->setBounds(progressBar.get()->getBounds().reduced(4, 8));
+	btnClearFiles.setBounds(btnClearFiles.getBounds().reduced(4));
+	btnResetFiles.setBounds(btnResetFiles.getBounds().reduced(4));
 }
 void HeaderPanel::setEnableState(bool state)
 {
@@ -158,6 +165,8 @@ void ControlsPanel::resized()
 		GridItem(nullptr), GridItem(lblLUFSTarget) , GridItem(sldLUFSTarget), GridItem(nullptr), GridItem(btnLimiterCeiling), GridItem(nullptr),
 	};
 	grid.performLayout(getLocalBounds());
+
+	btnLimiterCeiling.setBounds(btnLimiterCeiling.getBounds().reduced(4));
 }
 void ControlsPanel::setEnableState(bool state)
 {
