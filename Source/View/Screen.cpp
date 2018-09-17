@@ -117,6 +117,7 @@ ControlsPanel::ControlsPanel()
 	lblLUFSTarget.setColour(Label::textColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));
 	lblLUFSTarget.setColour(Label::backgroundColourId, ColourFactory::getColour(theme::LABEL_BK_COLOUR));
 	lblLUFSTarget.setJustificationType(Justification::centred);
+
 	sldLUFSTarget.setRange(-23.0f, -10.0f);
 	sldLUFSTarget.setValue(-14.0f);
 	sldLUFSTarget.setTextValueSuffix(" LUFS");
@@ -125,25 +126,15 @@ ControlsPanel::ControlsPanel()
 	sldLUFSTarget.setColour(Slider::textBoxTextColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));
 	sldLUFSTarget.setTooltip("Set the required output loudness - default -14LUFS");
 
-
 	btnLimiterCeiling.setButtonText("PEAK LIMITER");
 	btnLimiterCeiling.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
 	btnLimiterCeiling.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 	btnLimiterCeiling.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 	btnLimiterCeiling.setTooltip("Select and Set a Peak Limiter.");
 
-	sldLimiterCeiling.setRange(-3.0f, 0.0f);
-	sldLimiterCeiling.setValue(-1.0f);
-	sldLimiterCeiling.setTextValueSuffix(" dBFS");
-	sldLimiterCeiling.setNumDecimalPlacesToDisplay(1);
-	sldLimiterCeiling.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, true, 120, 20);
-	sldLimiterCeiling.setColour(Slider::textBoxTextColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));
-	sldLimiterCeiling.setTooltip("Set the limiter ceiling - default -1dbFS");
-
 	addAndMakeVisible(&lblLUFSTarget);
 	addAndMakeVisible(&sldLUFSTarget);
 	addAndMakeVisible(&btnLimiterCeiling);
-	addAndMakeVisible(&sldLimiterCeiling);
 }
 ControlsPanel::~ControlsPanel()
 {
@@ -171,7 +162,6 @@ void ControlsPanel::resized()
 void ControlsPanel::setEnableState(bool state)
 {
 	sldLUFSTarget.setEnabled(state);
-	sldLimiterCeiling.setEnabled(state);
 	btnLimiterCeiling, setEnabled(state);
 }
 #pragma endregion

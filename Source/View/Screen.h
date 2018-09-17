@@ -95,7 +95,6 @@ class ControlsPanel : public Component
 		void setEnableState(bool state);
 
 		Slider sldLUFSTarget;
-		Slider sldLimiterCeiling;
 		TextButton btnLimiterCeiling;
 
 	private:
