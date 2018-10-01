@@ -36,7 +36,8 @@ class MainComponent : public Component, public ListBoxModelListener, public Offl
 
 	private:
 		#pragma region Process Methods and Parameters
-		
+		AppLookAndFeel appLookAndFeel;
+
 		const String limiterPluginName = "George Yohng's W1 Limiter";
 		const String limiterPluginName64 = "George Yohng's W1 Limiter x64";
 		void loadLimiterPlugin();

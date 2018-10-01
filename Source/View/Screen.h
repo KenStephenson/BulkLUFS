@@ -10,6 +10,9 @@
 
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
+
+using namespace std;
+
 class ColourFactory
 {
 	public:
@@ -54,6 +57,48 @@ class ColourFactory
 		}
 };
 
+const int XMargin = 6;
+const int YMargin = 4;
+const Colour gridColour = Colours::slategrey;
+
+class AppLookAndFeel : public LookAndFeel_V4
+{
+	public:
+		AppLookAndFeel()
+		{
+			btnFont = make_unique<Font>(14, Font::bold);
+
+			ColourScheme& currentScheme = getCurrentColourScheme();
+			currentScheme.setUIColour(LookAndFeel_V4::ColourScheme::UIColour::windowBackground, Colours::aliceblue);
+			currentScheme.setUIColour(LookAndFeel_V4::ColourScheme::UIColour::outline, Colours::aliceblue);
+			currentScheme.setUIColour(LookAndFeel_V4::ColourScheme::UIColour::defaultFill, Colours::aliceblue);
+			setColourScheme(currentScheme);
+
+			setColour(Label::textColourId, Colours::white);
+
+			setColour(TextButton::buttonColourId, Colours::white);
+			setColour(TextButton::textColourOnId, Colours::black);
+			setColour(TextButton::textColourOffId, Colours::black);
+
+		}
+		~AppLookAndFeel()
+		{
+			btnFont = nullptr;
+		}
+		Font getTextButtonFont(TextButton& tbn, int buttonHeight) override
+		{
+			return *btnFont.get();
+		}
+		Font getLabelFont(Label& tbn) override
+		{
+			return *btnFont.get();
+		}
+
+	private:
+		unique_ptr<Font> btnFont;
+
+		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AppLookAndFeel)
+};
 
 class HeaderPanel : public Component
 {
@@ -81,7 +126,6 @@ class HeaderPanel : public Component
 
 	private:
 		Colour backgroundColour;
-
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HeaderPanel)
 };
 class ControlsPanel : public Component

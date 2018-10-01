@@ -15,44 +15,27 @@
 HeaderPanel::HeaderPanel()
 {
 	using theme = ColourFactory::ThemeComponent;
-	backgroundColour = ColourFactory::getColour(theme::PANEL_BK_COLOUR);
+	backgroundColour = gridColour;
 
 	btnAddFiles.setButtonText("1 - ADD FILES");
-	btnAddFiles.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
-	btnAddFiles.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
-	btnAddFiles.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 	btnAddFiles.setTooltip("Add the audio files to be processed");
 
 	btnDestFolder.setButtonText("2 - SELECT OUTPUT FOLDER");
-	btnDestFolder.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
-	btnDestFolder.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
-	btnDestFolder.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 	btnDestFolder.setTooltip("If output files are required, select an output folder (other than the source folder). If no folder is selected, no files will be written.");
 
 	lblDestFolder.setText(tagNoDestinationFolder, dontSendNotification);
-	lblDestFolder.setColour(Label::textColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));
-	lblDestFolder.setColour(Label::backgroundColourId, ColourFactory::getColour(theme::LABEL_BK_COLOUR));
 	lblDestFolder.setJustificationType(Justification::centred);
 
 	btnRunProcess.setButtonText("3 - START PROCESS");
-	btnRunProcess.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
-	btnRunProcess.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
-	btnRunProcess.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 	btnRunProcess.setTooltip("Start / Stop the analysis process");
 
 	progressBar = std::make_unique<ProgressBar>(progressValue);
 	progressBar->setPercentageDisplay(true);
 
 	btnClearFiles.setButtonText("CLEAR FILES");
-	btnClearFiles.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
-	btnClearFiles.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
-	btnClearFiles.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 	btnClearFiles.setTooltip("Clear the files list.");
 
 	btnResetFiles.setButtonText("RESET FILES");
-	btnResetFiles.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
-	btnResetFiles.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
-	btnResetFiles.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 	btnResetFiles.setTooltip("Reset the analysis values in the files list.");
 
 	addAndMakeVisible(&btnAddFiles);
@@ -68,7 +51,7 @@ HeaderPanel::~HeaderPanel()
 }
 void HeaderPanel::paint(Graphics& g)
 {
-	g.fillAll(backgroundColour);
+	g.fillAll(Colours::slategrey);
 }
 void HeaderPanel::resized()
 {
@@ -89,12 +72,12 @@ void HeaderPanel::resized()
 	};
 	grid.performLayout(getLocalBounds());
 
-	btnAddFiles.setBounds(btnAddFiles.getBounds().reduced(4));
-	btnDestFolder.setBounds(btnDestFolder.getBounds().reduced(4));
-	btnRunProcess.setBounds(btnRunProcess.getBounds().reduced(4));
-	progressBar.get()->setBounds(progressBar.get()->getBounds().reduced(4, 8));
-	btnClearFiles.setBounds(btnClearFiles.getBounds().reduced(4));
-	btnResetFiles.setBounds(btnResetFiles.getBounds().reduced(4));
+	btnAddFiles.setBounds(btnAddFiles.getBounds().reduced(XMargin, YMargin));
+	btnDestFolder.setBounds(btnDestFolder.getBounds().reduced(XMargin, YMargin));
+	btnRunProcess.setBounds(btnRunProcess.getBounds().reduced(XMargin, YMargin));
+	progressBar.get()->setBounds(progressBar.get()->getBounds().reduced(XMargin, YMargin));
+	btnClearFiles.setBounds(btnClearFiles.getBounds().reduced(XMargin, YMargin));
+	btnResetFiles.setBounds(btnResetFiles.getBounds().reduced(XMargin, YMargin));
 }
 void HeaderPanel::setEnableState(bool state)
 {
@@ -111,11 +94,9 @@ ControlsPanel::ControlsPanel()
 {
 	using theme = ColourFactory::ThemeComponent;
 
-	backgroundColour = ColourFactory::getColour(theme::PANEL_BK_COLOUR);
+	backgroundColour = gridColour;
 
 	lblLUFSTarget.setText("TARGET LOUDNESS", dontSendNotification);
-	lblLUFSTarget.setColour(Label::textColourId, ColourFactory::getColour(theme::LABEL_TEXT_COLOUR));
-	lblLUFSTarget.setColour(Label::backgroundColourId, ColourFactory::getColour(theme::LABEL_BK_COLOUR));
 	lblLUFSTarget.setJustificationType(Justification::centred);
 
 	sldLUFSTarget.setRange(-23.0f, -10.0f);
@@ -127,9 +108,6 @@ ControlsPanel::ControlsPanel()
 	sldLUFSTarget.setTooltip("Set the required output loudness - default -14LUFS");
 
 	btnLimiterCeiling.setButtonText("PEAK LIMITER");
-	btnLimiterCeiling.setColour(TextButton::buttonColourId, ColourFactory::getColour(theme::BUTTON_BK_COLOUR));
-	btnLimiterCeiling.setColour(TextButton::textColourOnId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
-	btnLimiterCeiling.setColour(TextButton::textColourOffId, ColourFactory::getColour(theme::BUTTON_TEXT_COLOUR));
 	btnLimiterCeiling.setTooltip("Select and Set a Peak Limiter.");
 
 	addAndMakeVisible(&lblLUFSTarget);
@@ -141,7 +119,7 @@ ControlsPanel::~ControlsPanel()
 }
 void ControlsPanel::paint(Graphics& g)
 {
-	g.fillAll(backgroundColour);
+	g.fillAll(Colours::slategrey);
 }
 void ControlsPanel::resized()
 {
@@ -157,7 +135,7 @@ void ControlsPanel::resized()
 	};
 	grid.performLayout(getLocalBounds());
 
-	btnLimiterCeiling.setBounds(btnLimiterCeiling.getBounds().reduced(4));
+	btnLimiterCeiling.setBounds(btnLimiterCeiling.getBounds().reduced(XMargin, YMargin));
 }
 void ControlsPanel::setEnableState(bool state)
 {
@@ -172,12 +150,8 @@ FileListPanel::FileListPanel()
 	using theme = ColourFactory::ThemeComponent;
 	using colID = FileListBoxModel::ColumnID;
 
-	backgroundColour = ColourFactory::getColour(theme::PANEL_BK_COLOUR);
+	backgroundColour = gridColour;
 
-	listInputFiles.setColour(ListBox::backgroundColourId, ColourFactory::getColour(theme::LIST_INPUTS_COLOUR));
-	listInputFiles.setColour(ListBox::outlineColourId, ColourFactory::getColour(theme::LIST_OUTLINE_COLOUR));
-
-	addAndMakeVisible(&listInputFiles);
 	const int colWIdth = 98;
 	listInputFiles.getHeader().addColumn("File", colID::File, 200, TableHeaderComponent::notSortable);
 	listInputFiles.getHeader().addColumn("IN [LUFS]", colID::InLufs, colWIdth, TableHeaderComponent::notSortable);
@@ -188,13 +162,15 @@ FileListPanel::FileListPanel()
 	listInputFiles.getHeader().addColumn("Gain [1=0dB]", colID::Gain, colWIdth, TableHeaderComponent::notSortable);
 	listInputFiles.getHeader().addColumn("PEAK IN [dBFS]", colID::InDbfs, colWIdth, TableHeaderComponent::notSortable);
 	listInputFiles.getHeader().addColumn("PEAK OUT [dBFS]", colID::OutDbfs, colWIdth, TableHeaderComponent::notSortable);
+
+	addAndMakeVisible(&listInputFiles);
 }
 FileListPanel::~FileListPanel()
 {
 }
 void FileListPanel::paint(Graphics& g) 
 {
-	g.fillAll(backgroundColour);
+	g.fillAll(Colours::slategrey);
 }
 
 void FileListPanel::resized() 

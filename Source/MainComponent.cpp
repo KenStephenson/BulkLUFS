@@ -19,6 +19,8 @@ MainComponent::MainComponent()
 }
 MainComponent::~MainComponent()
 {
+	LookAndFeel::setDefaultLookAndFeel(nullptr);
+
 }
 void MainComponent::closeApp()
 {
@@ -33,7 +35,7 @@ void MainComponent::paint (Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
 	using theme = ColourFactory::ThemeComponent;
-	g.fillAll(ColourFactory::getColour(theme::PANEL_BK_COLOUR));
+	g.fillAll(Colours::slategrey);
 
     // You can add your drawing code here!
 	g.setColour(Colours::black);
@@ -53,6 +55,8 @@ void MainComponent::resized()
 }
 void MainComponent::initialiseUserInterface()
 {
+	LookAndFeel::setDefaultLookAndFeel(&appLookAndFeel);
+
 	filesToProcesstListModel = std::make_unique<FileListBoxModel>();
 
 	addAndMakeVisible(headerPanel);
