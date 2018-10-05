@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    InputFileListBoxModel.h
+    SessionModel.h
     Created: 2 Sep 2018 4:02:34pm
     Author:  Ken
 
@@ -10,7 +10,7 @@
 
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "../OfflineLoudnessProcessor/OfflineLoudnessScanDataPacket.h"
+#include "../Model/TrackModel.h"
 
 
 class ListBoxModelListener
@@ -19,14 +19,14 @@ class ListBoxModelListener
 		virtual void refreshFileTableModel(String tag) {};
 };
 
-class FileListBoxModel : public TableListBoxModel
+class SessionModel : public TableListBoxModel
 {
 	public:
-		FileListBoxModel();
+		SessionModel();
 		void setListener(ListBoxModelListener* l, String t);
 
-		void addFile(std::shared_ptr<OfflineLoudnessScanDataPacket> scanData);
-		std::shared_ptr<OfflineLoudnessScanDataPacket> getFile(int idx);
+		void addFile(std::shared_ptr<TrackModel> scanData);
+		std::shared_ptr<TrackModel> getFile(int idx);
 		void clearFiles();
 		void resetFiles(ListBox& listBox);
 		File getParentDirectory();
@@ -50,7 +50,7 @@ class FileListBoxModel : public TableListBoxModel
 		};
 	private:		
 		const int numDecimalPoints = 1;
-		Array<std::shared_ptr<OfflineLoudnessScanDataPacket>> data;
+		Array<std::shared_ptr<TrackModel>> data;
 		ListBoxModelListener* listener;
 		String tag;
 };

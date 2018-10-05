@@ -10,10 +10,10 @@
 
 #include "OfflineLoudnessProcessor.h"
 
-OfflineLoudnessProcessor::OfflineLoudnessProcessor(std::shared_ptr<OfflineLoudnessScanDataPacket> _offlineLoudnessScanData)
-	: Thread("LUFSScan"), offlineLoudnessScanData(_offlineLoudnessScanData) 
+OfflineLoudnessProcessor::OfflineLoudnessProcessor(std::shared_ptr<TrackModel> _offlineLoudnessScanData)
+	: Thread("LUFSScan"), trackData(_offlineLoudnessScanData) 
 {
-	limiterPlugin = offlineLoudnessScanData->limiterPlugin;
+	limiterPlugin = trackData->limiterPlugin;
 };
 
 OfflineLoudnessProcessor::~OfflineLoudnessProcessor() 
@@ -71,7 +71,7 @@ void OfflineLoudnessProcessor::runProcessStep()
 void OfflineLoudnessProcessor::runProcessStepInitialise()
 {
 	formatManager.registerBasicFormats();
-	if (!loadFileFromDisk(offlineLoudnessScanData->file))
+	if (!loadFileFromDisk(trackData->file))
 	{
 		signalThreadShouldExit();
 		return;
@@ -109,15 +109,15 @@ void OfflineLoudnessProcessor::runProcessStepInitialise()
 void OfflineLoudnessProcessor::runProcessStepPreLoudness()
 {
 	// This called after the Initial Loudness scan
-	offlineLoudnessScanData->preIntegratedLufs = preProcessLoudnessMeter->getIntegratedLoudness();
-	offlineLoudnessScanData->prePeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, (int)numSamples));
+	trackData->preIntegratedLufs = preProcessLoudnessMeter->getIntegratedLoudness();
+	trackData->prePeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, (int)numSamples));
 
 	// Apply the required Gain
 	float fileDbLufs = preProcessLoudnessMeter->getIntegratedLoudness();
-	float dbDifference = (fileDbLufs * -1) - (offlineLoudnessScanData->dBLufsTarget * -1);
+	float dbDifference = (fileDbLufs * -1) - (trackData->dBLufsTarget * -1);
 	float gainFactor = Decibels::decibelsToGain(dbDifference);
-	offlineLoudnessScanData->diffLufs = dbDifference;
-	offlineLoudnessScanData->gain = gainFactor;
+	trackData->diffLufs = dbDifference;
+	trackData->gain = gainFactor;
 	audioBuffer->applyGain(gainFactor);
 
 	initialiseTimer(ProcessStep::BrickwallLimiter);
@@ -131,24 +131,45 @@ void OfflineLoudnessProcessor::runProcessStepPostLoudness()
 {
 	// This called after the Post Processing has been done
 	// Finalise and call the next file
-	offlineLoudnessScanData->postIntegratedLufs = postProcessLoudnessMeter->getIntegratedLoudness();
-	offlineLoudnessScanData->postPeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, (int)numSamples));
-	offlineLoudnessScanData->postShortTermLoudness = postProcessLoudnessMeter->getShortTermLoudness();
-	offlineLoudnessScanData->postMaximumShortTermLoudness = postProcessLoudnessMeter->getMaximumShortTermLoudness();
-	offlineLoudnessScanData->postMomentaryLoudness = postProcessLoudnessMeter->getMomentaryLoudness();
-	offlineLoudnessScanData->postMaximumMomentaryLoudness = postProcessLoudnessMeter->getMaximumMomentaryLoudness();
-	offlineLoudnessScanData->postLoudnessRangeStart = postProcessLoudnessMeter->getLoudnessRangeStart();
-	offlineLoudnessScanData->postLoudnessRangeEnd = postProcessLoudnessMeter->getLoudnessRangeEnd();
-	offlineLoudnessScanData->postLoudnessRange = postProcessLoudnessMeter->getLoudnessRange();
+	trackData->postIntegratedLufs = postProcessLoudnessMeter->getIntegratedLoudness();
+	trackData->postPeakDbfs = Decibels::gainToDecibels(audioBuffer->getMagnitude(0, (int)numSamples));
+	trackData->postShortTermLoudness = postProcessLoudnessMeter->getShortTermLoudness();
+	trackData->postMaximumShortTermLoudness = postProcessLoudnessMeter->getMaximumShortTermLoudness();
+	trackData->postMomentaryLoudness = postProcessLoudnessMeter->getMomentaryLoudness();
+	trackData->postMaximumMomentaryLoudness = postProcessLoudnessMeter->getMaximumMomentaryLoudness();
+	trackData->postLoudnessRangeStart = postProcessLoudnessMeter->getLoudnessRangeStart();
+	trackData->postLoudnessRangeEnd = postProcessLoudnessMeter->getLoudnessRangeEnd();
+	trackData->postLoudnessRange = postProcessLoudnessMeter->getLoudnessRange();
 
-	if (offlineLoudnessScanData->writeFile)
+	if (trackData->writeFile)
 	{
-		File wavFile = offlineLoudnessScanData->destinationFolder.getChildFile(offlineLoudnessScanData->file.getFileName());
-		wavFile.deleteFile();
-		FileOutputStream* fos = new FileOutputStream(wavFile);
+		File audioFile = trackData->destinationFolder.getChildFile(trackData->file.getFileName());
+		audioFile.deleteFile();
+		FileOutputStream* fos = new FileOutputStream(audioFile);
 		WavAudioFormat wavFormat;
-		ScopedPointer<AudioFormatWriter> afw(wavFormat.createWriterFor(fos, (double)fileSampleRate, audioBuffer->getNumChannels(), fileBitsPerSample, StringPairArray(), 0));
-		afw->writeFromAudioSampleBuffer(*audioBuffer, 0, audioBuffer->getNumSamples());
+		if (wavFormat.canHandleFile(audioFile))
+		{
+			ScopedPointer<AudioFormatWriter> afw(wavFormat.createWriterFor(fos, (double)fileSampleRate, audioBuffer->getNumChannels(), fileBitsPerSample, StringPairArray(), 0));
+			afw->writeFromAudioSampleBuffer(*audioBuffer, 0, audioBuffer->getNumSamples());
+		}
+		else
+		{
+			AiffAudioFormat aiffFormat;
+			if (aiffFormat.canHandleFile(audioFile))
+			{
+				ScopedPointer<AudioFormatWriter> afw(aiffFormat.createWriterFor(fos, (double)fileSampleRate, audioBuffer->getNumChannels(), fileBitsPerSample, StringPairArray(), 0));
+				afw->writeFromAudioSampleBuffer(*audioBuffer, 0, audioBuffer->getNumSamples());
+			}
+			else
+			{
+				FlacAudioFormat flacFormat;
+				if (flacFormat.canHandleFile(audioFile))
+				{
+					ScopedPointer<AudioFormatWriter> afw(flacFormat.createWriterFor(fos, (double)fileSampleRate, audioBuffer->getNumChannels(), fileBitsPerSample, StringPairArray(), 0));
+					afw->writeFromAudioSampleBuffer(*audioBuffer, 0, audioBuffer->getNumSamples());
+				}
+			}
+		}
 	}
 	bufferPointer = 0;
 	currentProcessStep = ProcessStep::Complete;
@@ -260,7 +281,7 @@ bool OfflineLoudnessProcessor::loadFileFromDisk(File srcFile)
 //		String ignore;
 //		if (AudioPluginInstance* pluginInstance = fm.createPluginInstance(*plugIn, 44100.0, 512, ignore))
 //		{
-//			float dbFS = Decibels::decibelsToGain(offlineLoudnessScanData->dBLimiterCeiling);
+//			float dbFS = Decibels::decibelsToGain(trackData->dBLimiterCeiling);
 //
 //			limiterPlugin = std::make_unique<PluginWrapperProcessor>(pluginInstance);
 //			limiterPlugin->setNonRealtime(true);

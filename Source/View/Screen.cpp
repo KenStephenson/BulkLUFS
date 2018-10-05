@@ -9,7 +9,8 @@
 */
 
 #include "Screen.h"
-#include "FileListBoxModel.h"
+#include "../Model/SessionModel.h"
+#include "../Model/TrackModel.h"
 
 #pragma region HeaderPanel Panel
 HeaderPanel::HeaderPanel()
@@ -148,7 +149,7 @@ void ControlsPanel::setEnableState(bool state)
 FileListPanel::FileListPanel()
 {
 	using theme = ColourFactory::ThemeComponent;
-	using colID = FileListBoxModel::ColumnID;
+	using colID = SessionModel::ColumnID;
 
 	backgroundColour = gridColour;
 

@@ -10,10 +10,10 @@
 
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
-struct OfflineLoudnessScanDataPacket
+struct TrackModel
 {
 	public:
-		OfflineLoudnessScanDataPacket()
+		TrackModel()
 		{
 			reset();
 		}

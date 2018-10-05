@@ -10,10 +10,10 @@
 
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "../View/FileListBoxModel.h"
+#include "../Model/SessionModel.h"
+#include "../Model/TrackModel.h"
 #include "../VstHost/PluginWrapperProcessor.h"
 #include"../EBU-R128/Ebu128LoudnessMeter.h"
-#include "./OfflineLoudnessScanDataPacket.h"
 
 class TimerListener
 {
@@ -38,7 +38,7 @@ class PulseTimer : public Timer
 class OfflineLoudnessProcessor : public Thread, public TimerListener
 {
 	public:
-		OfflineLoudnessProcessor(std::shared_ptr<OfflineLoudnessScanDataPacket> _offlineLoudnessScanData);
+		OfflineLoudnessProcessor(std::shared_ptr<TrackModel> _offlineLoudnessScanData);
 		~OfflineLoudnessProcessor();
 
 		void run() override;
@@ -83,7 +83,7 @@ class OfflineLoudnessProcessor : public Thread, public TimerListener
 		std::unique_ptr<Ebu128LoudnessMeter> preProcessLoudnessMeter;
 		std::unique_ptr<Ebu128LoudnessMeter> postProcessLoudnessMeter;
 		std::unique_ptr<PulseTimer> timer;
-		std::shared_ptr<OfflineLoudnessScanDataPacket> offlineLoudnessScanData;
+		std::shared_ptr<TrackModel> trackData;
 
 		AudioProcessor* limiterPlugin = nullptr;
 };

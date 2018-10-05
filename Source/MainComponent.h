@@ -10,8 +10,8 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "./View/Screen.h"
-#include "./View/FileListBoxModel.h"
-#include "./OfflineLoudnessProcessor/OfflineLoudnessScanDataPacket.h"
+#include "./Model/SessionModel.h"
+#include "./Model/TrackModel.h"
 #include "./OfflineLoudnessProcessor/OfflineLoudnessScanThread.h"
 #include "./VstHost/PluginListManager.h"
 
@@ -44,9 +44,9 @@ class MainComponent : public Component, public ListBoxModelListener, public Offl
 		std::unique_ptr<AudioProcessor> limiterPlugin;
 
 		const String tagInputList = "INPUT";
-		std::unique_ptr<FileListBoxModel> filesToProcesstListModel = nullptr;
+		std::unique_ptr<SessionModel> filesToProcesstListModel = nullptr;
 		std::unique_ptr<OfflineLoudnessScanThread> offlineLoudnessScanThread = nullptr;
-		std::shared_ptr<OfflineLoudnessScanDataPacket> activeOfflineLoudnessScanItem;
+		std::shared_ptr<TrackModel> activeOfflineLoudnessScanItem;
 		float dBLufsTarget = -14.0f;
 		bool writeFile = false;
 		int activeScanIndex = 0;
@@ -55,7 +55,7 @@ class MainComponent : public Component, public ListBoxModelListener, public Offl
 		void runProcess();
 		void stopProcess();
 		void startNextLoudnessScan();
-		void ScanCompleted() override;
+		void scanCompleted() override;
 		#pragma endregion
 
 		#pragma region User Interface Parameters

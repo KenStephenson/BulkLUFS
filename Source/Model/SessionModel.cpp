@@ -1,63 +1,63 @@
 /*
   ==============================================================================
 
-    FileListBoxModel.cpp
+    SessionModel.cpp
     Created: 13 Sep 2018 11:27:36am
     Author:  Ken
 
   ==============================================================================
 */
 
-#include "FileListBoxModel.h"
-FileListBoxModel::FileListBoxModel()
+#include "SessionModel.h"
+SessionModel::SessionModel()
 {
 	data.clear();
 }
-void FileListBoxModel::setListener(ListBoxModelListener* l, String t)
+void SessionModel::setListener(ListBoxModelListener* l, String t)
 {
 	listener = l;
 	tag = t;
 }
-void FileListBoxModel::addFile(std::shared_ptr<OfflineLoudnessScanDataPacket> scanData)
+void SessionModel::addFile(std::shared_ptr<TrackModel> scanData)
 {
 	data.add(scanData);
 }
-std::shared_ptr<OfflineLoudnessScanDataPacket> FileListBoxModel::getFile(int idx)
+std::shared_ptr<TrackModel> SessionModel::getFile(int idx)
 {
 	return data[idx];
 }
-void FileListBoxModel::clearFiles()
+void SessionModel::clearFiles()
 {
 	data.clear();
 }
-void FileListBoxModel::resetFiles(ListBox& listBox)
+void SessionModel::resetFiles(ListBox& listBox)
 {
 	for (int i = 0; i < data.size(); i++)
 	{
-		std::shared_ptr<OfflineLoudnessScanDataPacket> dataPacket = data[i];
+		std::shared_ptr<TrackModel> dataPacket = data[i];
 		dataPacket->reset();
 		listBox.repaintRow(i);
 	}
 }
 
-File FileListBoxModel::getParentDirectory()
+File SessionModel::getParentDirectory()
 {
 	return data[0]->file.getParentDirectory();
 }
-int FileListBoxModel::getNumRows() 
+int SessionModel::getNumRows() 
 {
 	return data.size();
 }
-void FileListBoxModel::paintRowBackground(Graphics& g, int rowNumber, int width, int height, bool rowIsSelected) 
+void SessionModel::paintRowBackground(Graphics& g, int rowNumber, int width, int height, bool rowIsSelected) 
 {
 	g.fillAll(Colours::lightgrey);
 }
-void FileListBoxModel::paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) 
+void SessionModel::paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) 
 {
-	using colID = FileListBoxModel::ColumnID;
+	using colID = SessionModel::ColumnID;
 
 	Rectangle<int> r(width, height);
-	std::shared_ptr<OfflineLoudnessScanDataPacket> row = data[rowNumber];
+	std::shared_ptr<TrackModel> row = data[rowNumber];
 	switch (columnId)
 	{
 	case colID::File:
@@ -92,7 +92,7 @@ void FileListBoxModel::paintCell(Graphics& g, int rowNumber, int columnId, int w
 		break;
 	}
 }
-void FileListBoxModel::cellDoubleClicked(int rowNumber, int columnId, const MouseEvent &) 
+void SessionModel::cellDoubleClicked(int rowNumber, int columnId, const MouseEvent &) 
 {
 	if (columnId == 1)
 	{

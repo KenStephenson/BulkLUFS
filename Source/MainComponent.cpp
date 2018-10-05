@@ -57,7 +57,7 @@ void MainComponent::initialiseUserInterface()
 {
 	LookAndFeel::setDefaultLookAndFeel(&appLookAndFeel);
 
-	filesToProcesstListModel = std::make_unique<FileListBoxModel>();
+	filesToProcesstListModel = std::make_unique<SessionModel>();
 
 	addAndMakeVisible(headerPanel);
 	addAndMakeVisible(controlPanel);
@@ -75,13 +75,13 @@ void MainComponent::initialiseUserInterface()
 }
 void MainComponent::addFilesButtonClicked()
 {
-	FileChooser chooser("Select files to process...", File(), "*.wav");
+	FileChooser chooser("Select files to process...", File(), "*.wav, *.aiff, *.aif, *.flac");
 	if (chooser.browseForMultipleFilesToOpen())
 	{
 		for (int i = 0; i < chooser.getResults().size(); i++)
 		{
 			File f = chooser.getResults()[i];
-			std::shared_ptr<OfflineLoudnessScanDataPacket> scanData = std::make_shared<OfflineLoudnessScanDataPacket>();
+			std::shared_ptr<TrackModel> scanData = std::make_shared<TrackModel>();
 			scanData->rowNo = i;
 			scanData->file = f;
 			filesToProcesstListModel->addFile(scanData);
@@ -278,7 +278,7 @@ void MainComponent::startNextLoudnessScan()
 	offlineLoudnessScanThread->runScan(activeOfflineLoudnessScanItem, this);
 }
 
-void MainComponent::ScanCompleted()
+void MainComponent::scanCompleted()
 {
 	if (cancelRequest)
 	{

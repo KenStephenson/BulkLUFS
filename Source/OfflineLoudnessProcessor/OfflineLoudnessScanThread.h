@@ -17,7 +17,7 @@ class OfflineLoudnessScanListener
 public:
 	OfflineLoudnessScanListener() {};
 	~OfflineLoudnessScanListener() {};
-	virtual void ScanCompleted() {};
+	virtual void scanCompleted() {};
 };
 
 class OfflineLoudnessScanThread : public Thread::Listener, public OfflineLoudnessScanListener
@@ -26,7 +26,7 @@ class OfflineLoudnessScanThread : public Thread::Listener, public OfflineLoudnes
 		OfflineLoudnessScanThread() {};
 		~OfflineLoudnessScanThread() {};
 
-		void runScan(std::shared_ptr<OfflineLoudnessScanDataPacket> _offlineLoudnessScanData, OfflineLoudnessScanListener* _viewListener)
+		void runScan(std::shared_ptr<TrackModel> _offlineLoudnessScanData, OfflineLoudnessScanListener* _viewListener)
 		{
 			viewListener = _viewListener;
 			scanThread = std::make_unique<OfflineLoudnessProcessor>(_offlineLoudnessScanData);
@@ -45,7 +45,7 @@ class OfflineLoudnessScanThread : public Thread::Listener, public OfflineLoudnes
 			}
 			if (viewListener != nullptr)
 			{
-				viewListener->ScanCompleted();
+				viewListener->scanCompleted();
 			}
 		}
 
