@@ -75,7 +75,7 @@ void MainComponent::initialiseUserInterface()
 }
 void MainComponent::addFilesButtonClicked()
 {
-	FileChooser chooser("Select files to process...", File(), "*.wav, *.aiff, *.aif, *.flac");
+	FileChooser chooser("Select files to process...", File(), "*.wav; *.aiff; *.aif; *.flac");
 	if (chooser.browseForMultipleFilesToOpen())
 	{
 		for (int i = 0; i < chooser.getResults().size(); i++)
@@ -92,7 +92,7 @@ void MainComponent::addFilesButtonClicked()
 }
 void MainComponent::destinationFolderButtonClicked()
 {
-	FileChooser chooser("Select output folder...", inputFolder, "*.wav");
+	FileChooser chooser("Select output folder...", inputFolder, "*.wav; *.aiff; *.aif; *.flac");
 	if (chooser.browseForDirectory())
 	{
 		destinationFolder = chooser.getResult();
