@@ -54,9 +54,11 @@ PluginListManager::PluginListManager(KnownPluginList* list, ApplicationPropertie
 	: list_(list), props_(props)
 {
 	{
-		ScopedPointer<XmlElement> savedPluginList(props->getUserSettings()->getXmlValue("pluginList"));
+		std::unique_ptr<XmlElement> savedPluginList(props->getUserSettings()->getXmlValue("pluginList"));
 		if (savedPluginList != nullptr)
+		{
 			list->recreateFromXml(*savedPluginList);
+		}
 	}
 
 	formatManager.addDefaultFormats();
@@ -71,10 +73,12 @@ PluginListManager::~PluginListManager()
 void PluginListManager::changeListenerCallback(ChangeBroadcaster* source)
 {
 	jassert(source == list_);
-	ScopedPointer<XmlElement> savedPluginList(list_->createXml());
+	std::unique_ptr<XmlElement> savedPluginList(list_->createXml());
 	if (savedPluginList != nullptr)
 	{
-		props_->getUserSettings()->setValue("pluginList", savedPluginList);
+		PropertiesFile* userSettings = props_->getUserSettings();
+		String str = String("pluginList");
+		userSettings->setValue(str, savedPluginList.get());
 		props_->saveIfNeeded();
 	}
 }

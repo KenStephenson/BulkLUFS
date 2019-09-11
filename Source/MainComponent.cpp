@@ -185,9 +185,10 @@ void MainComponent::loadLimiterPlugin()
 		AudioPluginFormatManager fm;
 		fm.addDefaultFormats();
 		String ignore;
-		if (AudioPluginInstance* pluginInstance = fm.createPluginInstance(*plugIn, 44100.0, 512, ignore))
+		unique_ptr<AudioPluginInstance> pluginInstance = fm.createPluginInstance(*plugIn, 44100.0, 512, ignore);
+		if (pluginInstance != nullptr)
 		{
-			limiterPlugin = std::make_unique<PluginWrapperProcessor>(pluginInstance);
+			limiterPlugin = std::make_unique<PluginWrapperProcessor>(pluginInstance.get());
 
 			limiterPlugin->setNonRealtime(true);
 			limiterPlugin->setParameter(0, 0.94f);		// Threshold -1dbFS
